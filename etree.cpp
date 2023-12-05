@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -62,58 +63,84 @@ private:
 
 public:
     void walk(const string &directory, const string &prefix) {
-        vector<fs::directory_entry> entries;
+        try {
+            vector<fs::directory_entry> entries;
 
-        for (const auto &entry : fs::directory_iterator(directory)) {
-            if (entry.path().filename().string()[0] != '.') {
-                entries.push_back(entry);
-            }
-        }
-
-        sort(entries.begin(), entries.end(), [](const fs::directory_entry &left, const fs::directory_entry &right) -> bool {
-            return left.path().filename() < right.path().filename();
-        });
-
-        for (size_t index = 0; index < entries.size(); index++) {
-            fs::directory_entry entry = entries[index];
-            vector<string> pointers = index == entries.size() - 1 ? final_pointers : inner_pointers;
-
-            if (entry.is_directory()) {
-                cout << prefix << pointers[0] << folder_icon << entry.path().filename().string() << endl;
-                dirs++;
-                walk(entry.path(), prefix + pointers[1]);
-            } else {
-                vector<string> extensions = { ".cpp", ".py", ".db" };
-                if (checkExtension(entry.path().string(), extensions)) {
-                    if (entry.path().extension() == ".cpp") {
-                        cout << prefix << pointers[0] << cpp_icon << entry.path().filename().string() << endl;
-                    } else if (entry.path().extension() == ".py") {
-                        cout << prefix << pointers[0] << py_icon << entry.path().filename().string() << endl;
-                    } else if (entry.path().extension() == ".db") {
-                        cout << prefix << pointers[0] << db_icon << entry.path().filename().string() << endl;
-                    }
-                } else if (entry.path().extension().empty() && !isBinaryFile(entry.path().string())) {
-                    cout << prefix << pointers[0] << empty_icon << entry.path().filename().string() << endl;
-                } else if (isBinaryFile(entry.path().string())) {
-                    cout << prefix << pointers[0] << binary_icon << entry.path().filename().string() << endl;
-                } else {
-                    cout << prefix << pointers[0] << entry.path().filename().string() << endl;
+            for (const auto &entry : fs::directory_iterator(directory)) {
+                if (entry.path().filename().string()[0] != '.') {;
+                    entries.push_back(entry);
                 }
-                files++;
             }
+
+            sort(entries.begin(), entries.end(), [](const fs::directory_entry &left, const fs::directory_entry &right) -> bool {
+                return left.path().filename() < right.path().filename();
+            });
+
+            for (size_t index = 0; index < entries.size(); index++) {
+                fs::directory_entry entry = entries[index];
+                vector<string> pointers = index == entries.size() - 1 ? final_pointers : inner_pointers;
+
+                try {
+                    if (fs::is_character_file(entry.path()) || fs::is_block_file(entry.path())) {
+                        cout << "Dispositivo especial: " << entry.path().string() << endl;
+                        continue;
+                    }
+
+                    if (entry.is_symlink()) {
+                        string canonical_path = fs::canonical(entry.path()).string();
+
+                        if (visited_links.find(canonical_path) != visited_links.end()) {
+                            continue;
+                        }
+
+                        visited_links.insert(canonical_path);
+                    }
+
+                    if (entry.is_directory()) {
+                        cout << prefix << pointers[0] << blueColour << folder_icon << entry.path().filename().string() << endColour << endl;
+                        dirs++;
+                        walk(entry.path(), prefix + pointers[1]);
+                    } else {
+                        vector<string> extensions = { ".cpp", ".py", ".db" };
+                        if (checkExtension(entry.path().string(), extensions)) {
+                            if (entry.path().extension() == ".cpp") {
+                                cout << prefix << pointers[0] << cpp_icon << entry.path().filename().string() << endl;
+                            } else if (entry.path().extension() == ".py") {
+                                cout << prefix << pointers[0] << py_icon << entry.path().filename().string() << endl;
+                            } else if (entry.path().extension() == ".db") {
+                                cout << prefix << pointers[0] << db_icon << entry.path().filename().string() << endl;
+                            }
+                        } else if (entry.path().extension().empty() && !isBinaryFile(entry.path().string())) {
+                            cout << prefix << pointers[0] << empty_icon << entry.path().filename().string() << endl;
+                        } else if (isBinaryFile(entry.path().string())) {
+                            cout << prefix << pointers[0] << greenColour << binary_icon << entry.path().filename().string() << endColour << endl;
+                        } else {
+                            cout << prefix << pointers[0] << entry.path().filename().string() << endl;
+                        }
+                        files++;
+                    }
+                } catch (const std::filesystem::filesystem_error &ex) {
+                    cerr << "Error: " << ex.what() << endl;
+                }
+            }
+        } catch (const std::filesystem::filesystem_error &ex) {
+            cerr << "Error: " << ex.what() << endl;
         }
     }
 
     void summary() {
         cout << "\n" << greenColour << dirs << endColour << " Directorios, " << greenColour << files << endColour << " Ficheros" << endl;
     }
+
+private:
+    std::set<std::string> visited_links;
 };
 
 int main(int argc, char *argv[]) {
     Tree tree;
     string directory = argc == 1 ? "." : argv[1];
 
-    cout << directory << endl;
+    cout << blueColour << directory << endColour << endl;
     tree.walk(directory, "");
     tree.summary();
 
