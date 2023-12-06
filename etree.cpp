@@ -1,11 +1,14 @@
+#include "librarys/json.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <map>
 #include <set>
+#include <iostream>
 #include <string>
 #include <vector>
 
+using json = nlohmann::json;
 using namespace std;
 namespace fs = filesystem;
 
@@ -18,18 +21,52 @@ const string purpleColour = "\033[1;35m";
 const string turquoiseColour = "\033[1;36m";
 const string grayColour = "\033[1;37m";
 
+std::map<std::string, std::string> loadTranslations(const std::string& filePath) {
+    std::map<std::string, std::string> translations;
+
+    std::ifstream file(filePath);
+    if (file.is_open()) {
+        json data;
+        file >> data;
+
+        for (json::iterator it = data.begin(); it != data.end(); ++it) {
+            translations[it.value()] = it.key();
+        }
+
+        file.close();
+    } else {
+        std::cerr << "No se pudo abrir el archivo de traducciones" << std::endl;
+    }
+
+    return translations;
+}
+
 class Tree {
 private:
     size_t dirs = 0;
     size_t files = 0;
+    std::set<std::string> visited_links;
     vector<string> inner_pointers = { "├── ", "│   " };
     vector<string> final_pointers = { "└── ", "    " };
-    string folder_icon = " ";
-    string cpp_icon = " ";
-    string py_icon = " ";
-    string binary_icon = " ";
-    string db_icon = " ";
-    string empty_icon = " ";
+    std::vector<std::pair<std::string, std::string>> iconsWithExtensions = {
+        {" ", ""},
+        {" ", ".cpp"},
+        {" ", ".py"},
+        {" ", ""},
+        {" ", ".db"},
+        {" ", ""},
+        {" ", ".js"},
+        {" ", ".zip"},
+        {" ", ".jar"},
+        {" ", ".php"},
+        {" ", ".txt"},
+        {"󰌛 ", ".c#"},
+        {" ", ".ts"},
+        {" ", ".c"},
+        {" ", ".rb"},
+        {" ", ".css"},
+        {" ", ".html"}
+    };
 
     bool isBinaryFile(const string &filename) {
         ifstream file(filename, ios::binary);
@@ -67,7 +104,7 @@ public:
             vector<fs::directory_entry> entries;
 
             for (const auto &entry : fs::directory_iterator(directory)) {
-                if (entry.path().filename().string()[0] != '.') {;
+                if (entry.path().filename().string()[0] != '.') {
                     entries.push_back(entry);
                 }
             }
@@ -97,28 +134,31 @@ public:
                     }
 
                     if (entry.is_directory()) {
-                        cout << prefix << pointers[0] << blueColour << folder_icon << entry.path().filename().string() << endColour << endl;
+                        cout << prefix << pointers[0] << blueColour << iconsWithExtensions[0].first << entry.path().filename().string() << endColour << endl;
                         dirs++;
                         walk(entry.path(), prefix + pointers[1]);
                     } else {
-                        vector<string> extensions = { ".cpp", ".py", ".db" };
-                        if (checkExtension(entry.path().string(), extensions)) {
-                            if (entry.path().extension() == ".cpp") {
-                                cout << prefix << pointers[0] << cpp_icon << entry.path().filename().string() << endl;
-                            } else if (entry.path().extension() == ".py") {
-                                cout << prefix << pointers[0] << py_icon << entry.path().filename().string() << endl;
-                            } else if (entry.path().extension() == ".db") {
-                                cout << prefix << pointers[0] << db_icon << entry.path().filename().string() << endl;
-                            }
-                        } else if (entry.path().extension().empty() && !isBinaryFile(entry.path().string())) {
-                            cout << prefix << pointers[0] << empty_icon << entry.path().filename().string() << endl;
-                        } else if (isBinaryFile(entry.path().string())) {
-                            cout << prefix << pointers[0] << greenColour << binary_icon << entry.path().filename().string() << endColour << endl;
-                        } else {
-                            cout << prefix << pointers[0] << entry.path().filename().string() << endl;
-                        }
-                        files++;
-                    }
+                          bool extensionChecked = false;
+
+                          for (const auto &pair : iconsWithExtensions) {
+                              const std::string &extension = pair.second;
+                              if (!extension.empty() && entry.path().extension() == extension) {
+                                  cout << prefix << pointers[0] << pair.first << entry.path().filename().string() << endl;
+                                  extensionChecked = true;
+                                  break;
+                              }
+                          }
+
+                          if (!extensionChecked && entry.path().extension().empty() && !isBinaryFile(entry.path().string())) {
+                              cout << prefix << pointers[0] << iconsWithExtensions[5].first << entry.path().filename().string() << endl;
+                          } else if (!extensionChecked && isBinaryFile(entry.path().string())) {
+                              cout << prefix << pointers[0] << greenColour << iconsWithExtensions[3].first << entry.path().filename().string() << endColour << endl;
+                          } else if (!extensionChecked) {
+                              cout << prefix << pointers[0] << entry.path().filename().string() << endl;
+                          }
+
+                          files++;
+                      }
                 } catch (const std::filesystem::filesystem_error &ex) {
                     cerr << "Error: " << ex.what() << endl;
                 }
@@ -128,21 +168,26 @@ public:
         }
     }
 
-    void summary() {
-        cout << "\n" << greenColour << dirs << endColour << " Directorios, " << greenColour << files << endColour << " Ficheros" << endl;
-    }
+    void summary(const std::map<std::string, std::string>& translations) {
+        std::string translatedDirectories = translations.at("translated_directories_value");
+        std::string translatedFiles = translations.at("translated_files_value");
 
-private:
-    std::set<std::string> visited_links;
+        std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << endColour << " " << translatedFiles << std::endl;
+    }
 };
 
 int main(int argc, char *argv[]) {
+    std::string localesFolder = "locales";
+    std::string languageCode = "es";
+
+    std::map<std::string, std::string> translations = loadTranslations(localesFolder + "/" + languageCode + ".json");
+
     Tree tree;
     string directory = argc == 1 ? "." : argv[1];
 
     cout << blueColour << directory << endColour << endl;
     tree.walk(directory, "");
-    tree.summary();
+    tree.summary(translations);
 
     return 0;
 }
