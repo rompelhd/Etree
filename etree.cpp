@@ -65,7 +65,10 @@ private:
         {" ", ".c"},
         {" ", ".rb"},
         {" ", ".css"},
-        {" ", ".html"}
+        {" ", ".html"},
+        {" ", ".json"},
+        {" ", ".hpp"},
+        {" ", ".sh"}
     };
 
     bool isBinaryFile(const string &filename) {
@@ -138,27 +141,27 @@ public:
                         dirs++;
                         walk(entry.path(), prefix + pointers[1]);
                     } else {
-                          bool extensionChecked = false;
+                        bool extensionChecked = false;
 
-                          for (const auto &pair : iconsWithExtensions) {
-                              const std::string &extension = pair.second;
-                              if (!extension.empty() && entry.path().extension() == extension) {
-                                  cout << prefix << pointers[0] << pair.first << entry.path().filename().string() << endl;
-                                  extensionChecked = true;
-                                  break;
-                              }
-                          }
+                        for (const auto &pair : iconsWithExtensions) {
+                            const std::string &extension = pair.second;
+                            if (!extension.empty() && entry.path().extension() == extension) {
+                                cout << prefix << pointers[0] << pair.first << entry.path().filename().string() << endl;
+                                extensionChecked = true;
+                                break;
+                            }
+                        }
 
-                          if (!extensionChecked && entry.path().extension().empty() && !isBinaryFile(entry.path().string())) {
-                              cout << prefix << pointers[0] << iconsWithExtensions[5].first << entry.path().filename().string() << endl;
-                          } else if (!extensionChecked && isBinaryFile(entry.path().string())) {
-                              cout << prefix << pointers[0] << greenColour << iconsWithExtensions[3].first << entry.path().filename().string() << endColour << endl;
-                          } else if (!extensionChecked) {
-                              cout << prefix << pointers[0] << entry.path().filename().string() << endl;
-                          }
+                        if (!extensionChecked && entry.path().extension().empty() && !isBinaryFile(entry.path().string())) {
+                            cout << prefix << pointers[0] << iconsWithExtensions[5].first << entry.path().filename().string() << endl;
+                        } else if (!extensionChecked && isBinaryFile(entry.path().string())) {
+                            cout << prefix << pointers[0] << greenColour << iconsWithExtensions[3].first << entry.path().filename().string() << endColour << endl;
+                        } else if (!extensionChecked) {
+                            cout << prefix << pointers[0] << entry.path().filename().string() << endl;
+                        }
 
-                          files++;
-                      }
+                        files++;
+                    }
                 } catch (const std::filesystem::filesystem_error &ex) {
                     cerr << "Error: " << ex.what() << endl;
                 }
@@ -172,11 +175,31 @@ public:
         std::string translatedDirectories = translations.at("translated_directories_value");
         std::string translatedFiles = translations.at("translated_files_value");
 
-        std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << endColour << " " << translatedFiles << std::endl;
+        std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
     }
 };
 
-int main(int argc, char *argv[]) {
+void showHelp() {
+    std::cout << "Usage: etree [directory]" << std::endl;
+    std::cout << "Display a tree of directories and files in the specified directory." << std::endl;
+    std::cout << "If no directory is provided, the current directory is used." << std::endl;
+    std::cout << "Arguments:" << std::endl;
+    std::cout << "  --help     Show this help message" << std::endl;
+}
+
+void param(int argc, char *argv[]) {
+    std::vector<std::string> arguments;
+    for (int i = 1; i < argc; ++i) {
+        arguments.emplace_back(argv[i]);
+    }
+
+    for (const auto &arg : arguments) {
+        if (arg == "--help") {
+            showHelp();
+            return;
+        }
+    }
+
     std::string localesFolder = "locales";
     std::string languageCode = "es";
 
@@ -188,6 +211,9 @@ int main(int argc, char *argv[]) {
     cout << blueColour << directory << endColour << endl;
     tree.walk(directory, "");
     tree.summary(translations);
+}
 
+int main(int argc, char *argv[]) {
+    param(argc, argv);
     return 0;
 }
