@@ -71,37 +71,22 @@ private:
         {" ", ".sh"}
     };
 
-    bool isBinaryFile(const string &filename) {
-        ifstream file(filename, ios::binary);
-        if (!file) {
-            cerr << "Error al abrir el archivo: " << filename << endl;
-            return false;
+    void exploreDirectory(const fs::path &path, const string &prefix) {
+        try {
+        } catch (const std::filesystem::filesystem_error &ex) {
+            cerr << "Error: " << ex.what() << endl;
         }
-
-        char buffer[4096];
-        while (file.read(buffer, sizeof(buffer))) {
-            for (size_t i = 0; i < file.gcount(); ++i) {
-                if (buffer[i] == '\0') {
-                    file.close();
-                    return true;
-                }
-            }
-        }
-
-        file.close();
-        return false;
-    }
-
-    bool checkExtension(const string &file, const vector<string> &extensions) {
-        for (const auto &ext : extensions) {
-            if (fs::path(file).extension() == ext) {
-                return true;
-            }
-        }
-        return false;
     }
 
 public:
+    size_t getDirsCount() const {
+        return dirs;
+    }
+
+    size_t getFilesCount() const {
+        return files;
+    }
+
     void walk(const string &directory, const string &prefix) {
         try {
             vector<fs::directory_entry> entries;
@@ -177,6 +162,36 @@ public:
 
         std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
     }
+
+    bool isBinaryFile(const string &filename) {
+        ifstream file(filename, ios::binary);
+        if (!file) {
+            cerr << "Error al abrir el archivo: " << filename << endl;
+            return false;
+        }
+
+        char buffer[4096];
+        while (file.read(buffer, sizeof(buffer))) {
+            for (size_t i = 0; i < file.gcount(); ++i) {
+                if (buffer[i] == '\0') {
+                    file.close();
+                    return true;
+                }
+            }
+        }
+
+        file.close();
+        return false;
+    }
+
+    bool checkExtension(const string &file, const vector<string> &extensions) {
+        for (const auto &ext : extensions) {
+            if (fs::path(file).extension() == ext) {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 void showHelp() {
@@ -187,28 +202,75 @@ void showHelp() {
     std::cout << "  --help     Show this help message" << std::endl;
 }
 
+bool disableColorsFlag = false;
+
+void parame_n(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations) {
+    std::cout << "-n is on" << std::endl;
+    std::string currentDirectory = fs::current_path().string();
+
+    if (fs::equivalent(fs::path(directory), fs::current_path())) {
+        std::cout << blueColour << "." << endColour << std::endl;
+    } else {
+        std::cout << blueColour << directory << endColour << std::endl;
+    }
+
+    tree.walk(directory, "");
+
+    size_t dirs = tree.getDirsCount();
+    size_t files = tree.getFilesCount();
+
+    std::string translatedDirectories = translations.at("translated_directories_value");
+    std::string translatedFiles = translations.at("translated_files_value");
+
+    std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
+}
+
 void param(int argc, char *argv[]) {
-    std::vector<std::string> arguments;
-    for (int i = 1; i < argc; ++i) {
-        arguments.emplace_back(argv[i]);
-    }
-
-    for (const auto &arg : arguments) {
-        if (arg == "--help") {
-            showHelp();
-            return;
-        }
-    }
-
+    std::string directory = ".";
     std::string localesFolder = "locales";
     std::string languageCode = "es";
+    bool showHelpFlag = false;
+    bool parameNFlag = false;
 
     std::map<std::string, std::string> translations = loadTranslations(localesFolder + "/" + languageCode + ".json");
 
-    Tree tree;
-    string directory = argc == 1 ? "." : argv[1];
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
 
-    cout << blueColour << directory << endColour << endl;
+        if (arg == "--help") {
+            showHelpFlag = true;
+        } else if (arg == "-n") {
+            parameNFlag = true;
+            if (i + 1 < argc) {
+                directory = argv[i + 1];
+                break;
+            }
+        } else {
+            directory = argv[i];
+            break;
+        }
+    }
+
+    if (showHelpFlag) {
+        showHelp();
+        return;
+    }
+
+    if (parameNFlag) {
+        translations = loadTranslations(localesFolder + "/" + languageCode + ".json");
+        Tree tree;
+        parame_n(directory, tree, translations);
+        return;
+    }
+
+    Tree tree;
+
+     if (!disableColorsFlag) {
+        cout << blueColour << directory << endColour << endl;
+    } else {
+        cout << directory << endl;
+    }
+
     tree.walk(directory, "");
     tree.summary(translations);
 }
