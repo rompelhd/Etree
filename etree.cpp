@@ -1,16 +1,23 @@
 #include "librarys/json.hpp"
-#include <algorithm>
+#include <curl/curl.h>
 #include <filesystem>
-#include <fstream>
-#include <map>
-#include <set>
+#include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
+#include <regex>
+#include <map>
+#include <set>
 
 using json = nlohmann::json;
 using namespace std;
 namespace fs = filesystem;
+
+size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *buffer) {
+    buffer->append((char *)contents, size * nmemb);
+    return size * nmemb;
+}
 
 const string greenColour = "\033[1;32m";
 const string endColour = "\033[0m";
@@ -35,7 +42,7 @@ std::map<std::string, std::string> loadTranslations(const std::string& filePath)
 
         file.close();
     } else {
-        std::cerr << "No se pudo abrir el archivo de traducciones" << std::endl;
+        std::cerr << "Error in the translation file" << std::endl;
     }
 
     return translations;
@@ -194,6 +201,50 @@ public:
     }
 };
 
+void showVer(const std::map<std::string, std::string>& translations) {
+    std::cout << "Etree " << translations.at("version") << " by Rompelhd" << std::endl;
+}
+
+void checkupdate(const std::map<std::string, std::string>& translations) {
+    CURL *curl;
+    CURLcode res;
+    std::string url = "https://github.com/rompelhd/Etree/blob/main/version";
+    std::string buffer;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+    std::string version_translations = translations.at("version");
+
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+        res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK) {
+            std::cerr << translations.at("error_version_download") << curl_easy_strerror(res) << std::endl;
+        } else {
+            std::regex patron("(v\\.\\d+\\.\\d+\\.\\d+)");
+
+            std::smatch coincidencia;
+            if (std::regex_search(buffer, coincidencia, patron)) {
+                std::string version_descargada = coincidencia[1];
+
+                if (version_translations == version_descargada) {
+                    std::cout << translations.at("version_is_update") << std::endl;
+                } else {
+                    std::cout << translations.at("version_need_update") << std::endl;
+                }
+            } else {
+                std::cout << translations.at("no_version_found") << std::endl;
+            }
+        }
+        curl_easy_cleanup(curl);
+    }
+    curl_global_cleanup();
+}
+
 void showHelp() {
     std::cout << "Usage: etree [directory]" << std::endl;
     std::cout << "Display a tree of directories and files in the specified directory." << std::endl;
@@ -205,7 +256,7 @@ void showHelp() {
 bool disableColorsFlag = false;
 
 void parame_n(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations) {
-    std::cout << "-n is on" << std::endl;
+//    std::cout << "-n is on" << std::endl;
     std::string currentDirectory = fs::current_path().string();
 
     if (fs::equivalent(fs::path(directory), fs::current_path())) {
@@ -231,6 +282,7 @@ void param(int argc, char *argv[]) {
     std::string languageCode = "es";
     bool showHelpFlag = false;
     bool parameNFlag = false;
+    bool showVerFlag = false;
 
     std::map<std::string, std::string> translations = loadTranslations(localesFolder + "/" + languageCode + ".json");
 
@@ -239,6 +291,8 @@ void param(int argc, char *argv[]) {
 
         if (arg == "--help") {
             showHelpFlag = true;
+        } else if (arg == "--version") {
+            showVerFlag = true;
         } else if (arg == "-n") {
             parameNFlag = true;
             if (i + 1 < argc) {
@@ -253,6 +307,12 @@ void param(int argc, char *argv[]) {
 
     if (showHelpFlag) {
         showHelp();
+        return;
+    }
+
+    if (showVerFlag) {
+        showVer(translations);
+        checkupdate(translations);
         return;
     }
 
