@@ -1,1 +1,10 @@
-
+{
+    "Directorios": "translated_directories_value",
+    "Ficheros": "translated_files_value",
+    "Versión encontrada: ": "version_found",
+    "No se encontró ninguna version": "no_version_found",
+    "v.0.4.0": "version",
+    "Todo esta actualizado.": "version_is_update",
+    "Hay una actualizacion pendiente.": "version_need_update",
+    "Error al descargar el archivo: ": "error_version_download"
+}
