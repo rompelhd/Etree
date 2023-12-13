@@ -306,7 +306,7 @@ void param(int argc, char *argv[]) {
     }
 
     if (showHelpFlag) {
-        showHelp();
+        showHelp(translations);
         return;
     }
 
