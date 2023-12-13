@@ -245,12 +245,12 @@ void checkupdate(const std::map<std::string, std::string>& translations) {
     curl_global_cleanup();
 }
 
-void showHelp() {
-    std::cout << "Usage: etree [directory]" << std::endl;
-    std::cout << "Display a tree of directories and files in the specified directory." << std::endl;
-    std::cout << "If no directory is provided, the current directory is used." << std::endl;
-    std::cout << "Arguments:" << std::endl;
-    std::cout << "  --help     Show this help message" << std::endl;
+void showHelp(const std::map<std::string, std::string>& translations) {
+    std::cout << translations.at("usage") << std::endl;
+    std::cout << translations.at("display_tree_description") << std::endl;
+    std::cout << translations.at("default_directory_description") << std::endl;
+    std::cout << translations.at("arguments") << std::endl;
+    std::cout << translations.at("help_option") << std::endl;
 }
 
 bool disableColorsFlag = false;
