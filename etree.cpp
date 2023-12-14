@@ -67,7 +67,7 @@ private:
         {" ", ".jar"},
         {" ", ".php"},
         {" ", ".txt"},
-        {"󰌛 ", ".c#"},
+        {"󰌛 ", ".cs"},
         {" ", ".ts"},
         {" ", ".c"},
         {" ", ".rb"},
@@ -75,7 +75,28 @@ private:
         {" ", ".html"},
         {" ", ".json"},
         {" ", ".hpp"},
-        {" ", ".sh"}
+        {" ", ".sh"},
+        {" ", ".rs"},
+        {" ", ".mp4"},
+        {" ", ".mov"},
+        {" ", ".avi"},
+        {" ", ".mkv"},
+        {" ", ".flv"},
+        {" ", ".wmv"},
+        {" ", ".divx"},
+        {" ", ".xvid"},
+        {" ", ".png"},
+        {" ", ".jpg"},
+        {" ", ".jpeg"},
+        {"󰵸 ", ".gif"},
+        {" ", ".webp"},
+        {" ", ".tiff"},
+        {" ", ".bmp"},
+        {" ", ".heif"},
+        {" ", ".svg"},
+        {" ", ".eps"},
+        {" ", ".psd"},
+        {"󰨊 ", ".ps1"}
     };
 
     void exploreDirectory(const fs::path &path, const string &prefix) {
@@ -164,8 +185,8 @@ public:
     }
 
     void summary(const std::map<std::string, std::string>& translations) {
-        std::string translatedDirectories = translations.at("translated_directories_value");
-        std::string translatedFiles = translations.at("translated_files_value");
+        std::string translatedDirectories = translations.at("directories_trn");
+        std::string translatedFiles = translations.at("files_trn");
 
         std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
     }
@@ -270,8 +291,8 @@ void parame_n(const std::string& directory, Tree& tree, const std::map<std::stri
     size_t dirs = tree.getDirsCount();
     size_t files = tree.getFilesCount();
 
-    std::string translatedDirectories = translations.at("translated_directories_value");
-    std::string translatedFiles = translations.at("translated_files_value");
+    std::string translatedDirectories = translations.at("directories_trn");
+    std::string translatedFiles = translations.at("files_trn");
 
     std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
 }
