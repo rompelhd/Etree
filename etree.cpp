@@ -106,6 +106,36 @@ private:
         }
     }
 
+    bool isBinaryFile(const string &filename) {
+    ifstream file(filename, ios::binary);
+    if (!file) {
+        cerr << "Error al abrir el archivo: " << filename << endl;
+        return false;
+    }
+
+    char buffer[4096];
+    while (file.read(buffer, sizeof(buffer))) {
+        for (size_t i = 0; i < file.gcount(); ++i) {
+            if (buffer[i] == '\0') {
+                file.close();
+                return true;
+            }
+        }
+    }
+
+    file.close();
+    return false;
+}
+
+bool checkExtension(const string &file, const vector<string> &extensions) {
+    for (const auto &ext : extensions) {
+        if (fs::path(file).extension() == ext) {
+            return true;
+        }
+    }
+    return false;
+}
+
 public:
     size_t getDirsCount() const {
         return dirs;
@@ -115,45 +145,71 @@ public:
         return files;
     }
 
-    void walk(const string &directory, const string &prefix, bool showHiddenFiles) {
+    void walk(const string &directory, const string &prefix, bool showHiddenFiles, bool showOnlyDirectories, bool parameDFlag) {
         try {
             vector<fs::directory_entry> entries;
 
-            for (const auto &entry : fs::directory_iterator(directory)) {
-                if (showHiddenFiles || entry.path().filename().string()[0] != '.') {
-                    entries.push_back(entry);
-                }
-            }
-
-            sort(entries.begin(), entries.end(), [](const fs::directory_entry &left, const fs::directory_entry &right) -> bool {
-                return left.path().filename() < right.path().filename();
-            });
-
-            for (size_t index = 0; index < entries.size(); index++) {
-                fs::directory_entry entry = entries[index];
-                vector<string> pointers = index == entries.size() - 1 ? final_pointers : inner_pointers;
-
-                try {
-                    if (fs::is_character_file(entry.path()) || fs::is_block_file(entry.path())) {
-                        cout << "Dispositivo especial: " << entry.path().string() << endl;
+            if (parameDFlag) {
+                for (const auto &entry : fs::directory_iterator(directory)) {
+                    if (!entry.is_directory()) {
                         continue;
                     }
 
-                    if (entry.is_symlink()) {
-                        string canonical_path = fs::canonical(entry.path()).string();
-
-                        if (visited_links.find(canonical_path) != visited_links.end()) {
-                            continue;
-                        }
-
-                        visited_links.insert(canonical_path);
+                    if (!showHiddenFiles && entry.path().filename().string()[0] == '.') {
+                        continue;
                     }
 
-                    if (entry.is_directory()) {
-                        cout << prefix << pointers[0] << blueColour << iconsWithExtensions[0].first << entry.path().filename().string() << endColour << endl;
-                        dirs++;
-                        walk(entry.path(), prefix + pointers[1], showHiddenFiles);
-                    } else {
+                    entries.push_back(entry);
+                }
+            } else {
+                for (const auto &entry : fs::directory_iterator(directory)) {
+                    if (showOnlyDirectories && !entry.is_directory()) {
+                        continue;
+                    }
+                    if (!showHiddenFiles && entry.path().filename().string()[0] == '.') {
+                        continue;
+                    }
+
+                    if (!showOnlyDirectories && parameDFlag) {
+                        walk(entry.path(), prefix + "  ", showHiddenFiles, showOnlyDirectories, parameDFlag);
+                    }
+
+                    entries.push_back(entry);
+                 }
+             }
+
+        sort(entries.begin(), entries.end(), [](const fs::directory_entry &left, const fs::directory_entry &right) -> bool {
+            return left.path().filename() < right.path().filename();
+        });
+
+        for (size_t index = 0; index < entries.size(); index++) {
+            fs::directory_entry entry = entries[index];
+            vector<string> pointers = index == entries.size() - 1 ? final_pointers : inner_pointers;
+
+            try {
+                if (fs::is_character_file(entry.path()) || fs::is_block_file(entry.path())) {
+                    cout << "Dispositivo especial: " << entry.path().string() << endl;
+                    continue;
+                }
+
+                if (entry.is_symlink()) {
+                    string canonical_path = fs::canonical(entry.path()).string();
+
+                    if (visited_links.find(canonical_path) != visited_links.end()) {
+                        continue;
+                    }
+
+                    visited_links.insert(canonical_path);
+                }
+
+                if (entry.is_directory()) {
+                    cout << prefix << pointers[0] << blueColour << iconsWithExtensions[0].first << entry.path().filename().string() << endColour << endl;
+                    dirs++;
+                    if (!showOnlyDirectories) {
+                        walk(entry.path(), prefix + pointers[1], showHiddenFiles, showOnlyDirectories, parameDFlag);
+                    }
+                } else {
+                    if (!showOnlyDirectories) {
                         bool extensionChecked = false;
 
                         for (const auto &pair : iconsWithExtensions) {
@@ -175,50 +231,21 @@ public:
 
                         files++;
                     }
-                } catch (const std::filesystem::filesystem_error &ex) {
-                    cerr << "Error: " << ex.what() << endl;
                 }
+            } catch (const std::filesystem::filesystem_error &ex) {
+                cerr << "Error: " << ex.what() << endl;
             }
-        } catch (const std::filesystem::filesystem_error &ex) {
-            cerr << "Error: " << ex.what() << endl;
         }
+    } catch (const std::filesystem::filesystem_error &ex) {
+        cerr << "Error: " << ex.what() << endl;
     }
+}
 
     void summary(const std::map<std::string, std::string>& translations) {
         std::string translatedDirectories = translations.at("directories_trn");
         std::string translatedFiles = translations.at("files_trn");
 
         std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
-    }
-
-    bool isBinaryFile(const string &filename) {
-        ifstream file(filename, ios::binary);
-        if (!file) {
-            cerr << "Error al abrir el archivo: " << filename << endl;
-            return false;
-        }
-
-        char buffer[4096];
-        while (file.read(buffer, sizeof(buffer))) {
-            for (size_t i = 0; i < file.gcount(); ++i) {
-                if (buffer[i] == '\0') {
-                    file.close();
-                    return true;
-                }
-            }
-        }
-
-        file.close();
-        return false;
-    }
-
-    bool checkExtension(const string &file, const vector<string> &extensions) {
-        for (const auto &ext : extensions) {
-            if (fs::path(file).extension() == ext) {
-                return true;
-            }
-        }
-        return false;
     }
 };
 
@@ -227,7 +254,6 @@ void showVer(const std::map<std::string, std::string>& translations) {
 }
 
 //void updating() {
-
 //}
 
 void checkupdate(const std::map<std::string, std::string>& translations) {
@@ -281,12 +307,6 @@ void showHelp(const std::map<std::string, std::string>& translations) {
 bool disableColorsFlag = false;
 
 void parame_a(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool showHiddenFiles) {
-    tree.walk(directory, "", showHiddenFiles);
-}
-
-void parame_n(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations) {
-//    std::cout << "-n is on" << std::endl;
-    bool showHiddenFiles = false;
     std::string currentDirectory = fs::current_path().string();
 
     if (fs::equivalent(fs::path(directory), fs::current_path())) {
@@ -295,7 +315,42 @@ void parame_n(const std::string& directory, Tree& tree, const std::map<std::stri
         std::cout << blueColour << directory << endColour << std::endl;
     }
 
-    tree.walk(directory, "", showHiddenFiles);
+    tree.walk(directory, "", showHiddenFiles, false, false);
+
+    size_t dirs = tree.getDirsCount();
+    size_t files = tree.getFilesCount();
+
+    std::string translatedDirectories = translations.at("directories_trn");
+    std::string translatedFiles = translations.at("files_trn");
+
+    std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
+
+}
+
+void parame_d(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameDFlag) {
+    bool showHiddenFiles = false;
+    bool showOnlyDirectories = false;
+
+    std::cout << blueColour << "." << endColour << std::endl;
+
+    tree.walk(directory, "", false, showOnlyDirectories, parameDFlag);
+
+    std::string translatedDirectories = translations.at("directories_trn");
+    std::cout << "\n" << greenColour << tree.getDirsCount() << endColour << " " << blueColour << translatedDirectories << endColour << std::endl;
+}
+
+void parame_n(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations) {
+    bool showHiddenFiles = false;
+    bool showOnlyDirectories = false;
+    std::string currentDirectory = fs::current_path().string();
+
+    if (fs::equivalent(fs::path(directory), fs::current_path())) {
+        std::cout << blueColour << "." << endColour << std::endl;
+    } else {
+        std::cout << blueColour << directory << endColour << std::endl;
+    }
+
+    tree.walk(directory, "", showHiddenFiles, false, false);
 
     size_t dirs = tree.getDirsCount();
     size_t files = tree.getFilesCount();
@@ -314,8 +369,10 @@ void param(int argc, char *argv[]) {
     bool parameNFlag = false;
     bool parameAFlag = false;
     bool showVerFlag = false;
+    bool parameDFlag = false;
 
     bool showHiddenFiles = false;
+    bool showOnlyDirectories = false;
 
     std::map<std::string, std::string> translations = loadTranslations(localesFolder + "/" + languageCode + ".json");
 
@@ -328,6 +385,8 @@ void param(int argc, char *argv[]) {
             showVerFlag = true;
         } else if (arg == "-a") {
             parameAFlag = true;
+        } else if (arg == "-d") {
+            parameDFlag = true;
         } else if (arg == "-n") {
             parameNFlag = true;
             if (i + 1 < argc) {
@@ -365,15 +424,22 @@ void param(int argc, char *argv[]) {
         return;
     }
 
-    Tree tree;
-
-     if (!disableColorsFlag) {
-        cout << blueColour << directory << endColour << endl;
-    } else {
-        cout << directory << endl;
+    if (parameDFlag) {
+        Tree tree;
+        showOnlyDirectories = true;
+        parame_d(directory, tree, translations, parameDFlag);
+        return;
     }
 
-    tree.walk(directory, "", showHiddenFiles);
+    if (fs::equivalent(fs::path(directory), fs::current_path())) {
+        std::cout << blueColour << "." << endColour << std::endl;
+    } else {
+        std::cout << blueColour << directory << endColour << std::endl;
+    }
+
+    Tree tree;
+
+    tree.walk(directory, "", showHiddenFiles, showOnlyDirectories, parameDFlag);
     tree.summary(translations);
 }
 
