@@ -245,7 +245,7 @@ public:
         std::string translatedDirectories = translations.at("directories_trn");
         std::string translatedFiles = translations.at("files_trn");
 
-        std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
+        std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << endColour << std::endl;
     }
 };
 
@@ -323,7 +323,7 @@ void parame_a(const std::string& directory, Tree& tree, const std::map<std::stri
     std::string translatedDirectories = translations.at("directories_trn");
     std::string translatedFiles = translations.at("files_trn");
 
-    std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
+    std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << endColour << std::endl;
 
 }
 
@@ -358,7 +358,7 @@ void parame_n(const std::string& directory, Tree& tree, const std::map<std::stri
     std::string translatedDirectories = translations.at("directories_trn");
     std::string translatedFiles = translations.at("files_trn");
 
-    std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << std::endl;
+    std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << endColour << std::endl;
 }
 
 void param(int argc, char *argv[]) {
@@ -411,7 +411,6 @@ void param(int argc, char *argv[]) {
     }
 
     if (parameNFlag) {
-        translations = loadTranslations(localesFolder + "/" + languageCode + ".json");
         Tree tree;
         parame_n(directory, tree, translations);
         return;
