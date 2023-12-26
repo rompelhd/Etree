@@ -1,4 +1,5 @@
-#include "librarys/json.hpp"
+#include "../include/etree.hpp"
+#include "../include/json.hpp"
 #include <curl/curl.h>
 #include <filesystem>
 #include <algorithm>
@@ -18,15 +19,6 @@ size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *buf
     buffer->append((char *)contents, size * nmemb);
     return size * nmemb;
 }
-
-const string greenColour = "\033[1;32m";
-const string endColour = "\033[0m";
-const string redColour = "\033[1;31m";
-const string blueColour = "\033[1;34m";
-const string yellowColour = "\033[1;33m";
-const string purpleColour = "\033[1;35m";
-const string turquoiseColour = "\033[1;36m";
-const string grayColour = "\033[1;37m";
 
 std::map<std::string, std::string> loadTranslations(const std::string& filePath) {
     std::map<std::string, std::string> translations;
@@ -109,7 +101,7 @@ private:
     bool isBinaryFile(const string &filename) {
     ifstream file(filename, ios::binary);
     if (!file) {
-        cerr << "Error al abrir el archivo: " << filename << endl;
+        cerr << "Error opening the file: " << filename << endl;
         return false;
     }
 
@@ -145,9 +137,23 @@ public:
         return files;
     }
 
-    void walk(const string &directory, const string &prefix, bool showHiddenFiles, bool showOnlyDirectories, bool parameDFlag) {
+    void walk(const string &directory, const string &prefix, bool showHiddenFiles, bool showOnlyDirectories, bool parameDFlag, bool parameFFlag) {
         try {
             vector<fs::directory_entry> entries;
+
+            if (parameFFlag) {
+              for (const auto &entry : fs::directory_iterator(directory)) {
+                  if (entry.is_directory()) {
+                    string relativePath = fs::relative(entry.path(), fs::current_path()).string();
+                    walk(entry.path(), prefix + "│lol   ", showHiddenFiles, showOnlyDirectories, parameDFlag, parameFFlag);
+                    cout << relativePath;
+                  } else {
+                      string relativePath = fs::relative(entry.path(), fs::current_path()).string();
+                      cout << relativePath;
+                  }
+              }
+
+            }
 
             if (parameDFlag) {
                 for (const auto &entry : fs::directory_iterator(directory)) {
@@ -171,7 +177,7 @@ public:
                     }
 
                     if (!showOnlyDirectories && parameDFlag) {
-                        walk(entry.path(), prefix + "  ", showHiddenFiles, showOnlyDirectories, parameDFlag);
+                        walk(entry.path(), prefix + "  ", showHiddenFiles, showOnlyDirectories, parameDFlag, parameFFlag);
                     }
 
                     entries.push_back(entry);
@@ -203,10 +209,10 @@ public:
                 }
 
                 if (entry.is_directory()) {
-                    cout << prefix << pointers[0] << blueColour << iconsWithExtensions[0].first << entry.path().filename().string() << endColour << endl;
+                    cout << prefix << pointers[0] << Colours::blueColour << iconsWithExtensions[0].first << entry.path().filename().string() << Colours::endColour << endl;
                     dirs++;
                     if (!showOnlyDirectories) {
-                        walk(entry.path(), prefix + pointers[1], showHiddenFiles, showOnlyDirectories, parameDFlag);
+                        walk(entry.path(), prefix + pointers[1], showHiddenFiles, showOnlyDirectories, parameDFlag, parameFFlag);
                     }
                 } else {
                     if (!showOnlyDirectories) {
@@ -224,7 +230,7 @@ public:
                         if (!extensionChecked && entry.path().extension().empty() && !isBinaryFile(entry.path().string())) {
                             cout << prefix << pointers[0] << iconsWithExtensions[5].first << entry.path().filename().string() << endl;
                         } else if (!extensionChecked && isBinaryFile(entry.path().string())) {
-                            cout << prefix << pointers[0] << greenColour << iconsWithExtensions[3].first << entry.path().filename().string() << endColour << endl;
+                            cout << prefix << pointers[0] << Colours::greenColour << iconsWithExtensions[3].first << entry.path().filename().string() << Colours::endColour << endl;
                         } else if (!extensionChecked) {
                             cout << prefix << pointers[0] << entry.path().filename().string() << endl;
                         }
@@ -245,7 +251,7 @@ public:
         std::string translatedDirectories = translations.at("directories_trn");
         std::string translatedFiles = translations.at("files_trn");
 
-        std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << endColour << std::endl;
+        std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translatedDirectories << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translatedFiles << Colours::endColour << std::endl;
     }
 };
 
@@ -306,16 +312,29 @@ void showHelp(const std::map<std::string, std::string>& translations) {
 
 bool disableColorsFlag = false;
 
+void parame_f(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameFFlag) {
+    std::string currentDirectory = fs::current_path().string();
+
+    if (fs::equivalent(fs::path(directory), fs::current_path())) {
+        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
+    } else {
+        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
+    }
+
+    tree.walk(directory, "", false, false, false, parameFFlag);
+
+}
+
 void parame_a(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool showHiddenFiles) {
     std::string currentDirectory = fs::current_path().string();
 
     if (fs::equivalent(fs::path(directory), fs::current_path())) {
-        std::cout << blueColour << "." << endColour << std::endl;
+        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
     } else {
-        std::cout << blueColour << directory << endColour << std::endl;
+        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
     }
 
-    tree.walk(directory, "", showHiddenFiles, false, false);
+    tree.walk(directory, "", showHiddenFiles, false, false, false);
 
     size_t dirs = tree.getDirsCount();
     size_t files = tree.getFilesCount();
@@ -323,7 +342,7 @@ void parame_a(const std::string& directory, Tree& tree, const std::map<std::stri
     std::string translatedDirectories = translations.at("directories_trn");
     std::string translatedFiles = translations.at("files_trn");
 
-    std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << endColour << std::endl;
+    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translatedDirectories << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translatedFiles << Colours::endColour << std::endl;
 
 }
 
@@ -331,12 +350,12 @@ void parame_d(const std::string& directory, Tree& tree, const std::map<std::stri
     bool showHiddenFiles = false;
     bool showOnlyDirectories = false;
 
-    std::cout << blueColour << "." << endColour << std::endl;
+    std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
 
-    tree.walk(directory, "", false, showOnlyDirectories, parameDFlag);
+    tree.walk(directory, "", false, showOnlyDirectories, parameDFlag, false);
 
     std::string translatedDirectories = translations.at("directories_trn");
-    std::cout << "\n" << greenColour << tree.getDirsCount() << endColour << " " << blueColour << translatedDirectories << endColour << std::endl;
+    std::cout << "\n" << Colours::greenColour << tree.getDirsCount() << Colours::endColour << " " << Colours::blueColour << translatedDirectories << Colours::endColour << std::endl;
 }
 
 void parame_n(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations) {
@@ -345,12 +364,12 @@ void parame_n(const std::string& directory, Tree& tree, const std::map<std::stri
     std::string currentDirectory = fs::current_path().string();
 
     if (fs::equivalent(fs::path(directory), fs::current_path())) {
-        std::cout << blueColour << "." << endColour << std::endl;
+        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
     } else {
-        std::cout << blueColour << directory << endColour << std::endl;
+        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
     }
 
-    tree.walk(directory, "", showHiddenFiles, false, false);
+    tree.walk(directory, "", showHiddenFiles, false, false, false);
 
     size_t dirs = tree.getDirsCount();
     size_t files = tree.getFilesCount();
@@ -358,23 +377,24 @@ void parame_n(const std::string& directory, Tree& tree, const std::map<std::stri
     std::string translatedDirectories = translations.at("directories_trn");
     std::string translatedFiles = translations.at("files_trn");
 
-    std::cout << "\n" << greenColour << dirs << endColour << " " << blueColour << translatedDirectories << endColour << ", " << greenColour << files << purpleColour << " " << translatedFiles << endColour << std::endl;
+    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translatedDirectories << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translatedFiles << Colours::endColour << std::endl;
 }
 
 void param(int argc, char *argv[]) {
     std::string directory = ".";
-    std::string localesFolder = "locales";
     std::string languageCode = "es";
     bool showHelpFlag = false;
     bool parameNFlag = false;
     bool parameAFlag = false;
     bool showVerFlag = false;
     bool parameDFlag = false;
+    bool parameFFlag = false;
 
     bool showHiddenFiles = false;
     bool showOnlyDirectories = false;
 
-    std::map<std::string, std::string> translations = loadTranslations(localesFolder + "/" + languageCode + ".json");
+    std::string languageFilePath = Paths::getLanguageFilePath(languageCode);
+    std::map<std::string, std::string> translations = loadTranslations(languageFilePath);
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -387,6 +407,8 @@ void param(int argc, char *argv[]) {
             parameAFlag = true;
         } else if (arg == "-d") {
             parameDFlag = true;
+        } else if (arg == "-f") {
+            parameFFlag = true;
         } else if (arg == "-n") {
             parameNFlag = true;
             if (i + 1 < argc) {
@@ -430,15 +452,21 @@ void param(int argc, char *argv[]) {
         return;
     }
 
+    if (parameFFlag) {
+        Tree tree;
+        parame_f(directory, tree, translations, parameFFlag);
+        return;
+    }
+
     if (fs::equivalent(fs::path(directory), fs::current_path())) {
-        std::cout << blueColour << "." << endColour << std::endl;
+        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
     } else {
-        std::cout << blueColour << directory << endColour << std::endl;
+        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
     }
 
     Tree tree;
 
-    tree.walk(directory, "", showHiddenFiles, showOnlyDirectories, parameDFlag);
+    tree.walk(directory, "", showHiddenFiles, showOnlyDirectories, parameDFlag, parameFFlag);
     tree.summary(translations);
 }
 
