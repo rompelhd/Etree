@@ -1,96 +1,14 @@
 #include "../include/etree.hpp"
 #include "../include/json.hpp"
 #include <curl/curl.h>
-#include <filesystem>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <vector>
 #include <regex>
-#include <map>
-#include <set>
-
-using json = nlohmann::json;
-using namespace std;
-namespace fs = filesystem;
-
-size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *buffer) {
-    buffer->append((char *)contents, size * nmemb);
-    return size * nmemb;
-}
-
-std::map<std::string, std::string> loadTranslations(const std::string& filePath) {
-    std::map<std::string, std::string> translations;
-
-    std::ifstream file(filePath);
-    if (file.is_open()) {
-        json data;
-        file >> data;
-
-        for (json::iterator it = data.begin(); it != data.end(); ++it) {
-            translations[it.value()] = it.key();
-        }
-
-        file.close();
-    } else {
-        std::cerr << "Error in the translation file" << std::endl;
-    }
-
-    return translations;
-}
 
 class Tree {
 private:
-    size_t dirs = 0;
-    size_t files = 0;
-    std::set<std::string> visited_links;
-    vector<string> inner_pointers = { "├── ", "│   " };
-    vector<string> final_pointers = { "└── ", "    " };
-    std::vector<std::pair<std::string, std::string>> iconsWithExtensions = {
-        {" ", ""},
-        {" ", ".cpp"},
-        {" ", ".py"},
-        {" ", ""},
-        {" ", ".db"},
-        {" ", ""},
-        {" ", ".js"},
-        {" ", ".zip"},
-        {" ", ".jar"},
-        {" ", ".php"},
-        {" ", ".txt"},
-        {"󰌛 ", ".cs"},
-        {" ", ".ts"},
-        {" ", ".c"},
-        {" ", ".rb"},
-        {" ", ".css"},
-        {" ", ".html"},
-        {" ", ".json"},
-        {" ", ".hpp"},
-        {" ", ".sh"},
-        {" ", ".rs"},
-        {" ", ".mp4"},
-        {" ", ".mov"},
-        {" ", ".avi"},
-        {" ", ".mkv"},
-        {" ", ".flv"},
-        {" ", ".wmv"},
-        {" ", ".divx"},
-        {" ", ".xvid"},
-        {" ", ".png"},
-        {" ", ".jpg"},
-        {" ", ".jpeg"},
-        {"󰵸 ", ".gif"},
-        {" ", ".webp"},
-        {" ", ".tiff"},
-        {" ", ".bmp"},
-        {" ", ".heif"},
-        {" ", ".svg"},
-        {" ", ".eps"},
-        {" ", ".psd"},
-        {"󰨊 ", ".ps1"}
-    };
-
     void exploreDirectory(const fs::path &path, const string &prefix) {
         try {
         } catch (const std::filesystem::filesystem_error &ex) {
