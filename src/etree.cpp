@@ -237,12 +237,14 @@ void showVer(const std::map<std::string, std::string>& translations) {
 }
 
 void printDirectory(const std::string& directory) {
+    std::string output;
     if (fs::equivalent(fs::path(directory), fs::current_path())) {
-        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
+        output = Colours::blueColour + "." + Colours::endColour + '\n';
         dirs++;
     } else {
-        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
+        output = Colours::blueColour + directory + Colours::endColour + '\n';
     }
+    std::cout << output;
 }
 
 //void updating() {
