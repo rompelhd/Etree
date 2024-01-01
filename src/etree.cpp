@@ -126,36 +126,95 @@ public:
                     visited_links.insert(canonical_path);
                 }
 
-                if (entry.is_directory()) {
-                    cout << prefix << pointers[0] << Colours::blueColour << iconsWithExtensions[0].first << entry.path().filename().string() << Colours::endColour << endl;
-                    dirs++;
-                    if (!showOnlyDirectories) {
-                        walk(entry.path(), prefix + pointers[1], showHiddenFiles, showOnlyDirectories, parameDFlag, parameFFlag);
+                if (entry.is_directory() && !isBinaryFile(entry.path().string())) {
+                    for (const auto &tuple : iconsWithExtensions) {
+                        const std::string &icon = std::get<0>(tuple);
+                        const std::string &extension = std::get<1>(tuple);
+                        const std::string &color = std::get<2>(tuple);
+
+                        if (extension.empty()) {
+                            cout << prefix << pointers[0];
+                            if (!color.empty()) {
+                                cout << color;
+                            }
+                            cout << std::get<0>(tuple) << entry.path().filename().string() << Colours::endColour << endl;
+                            dirs++;
+                            if (!showOnlyDirectories) {
+                                walk(entry.path(), prefix + pointers[1], showHiddenFiles, showOnlyDirectories, parameDFlag, parameFFlag);
+                            }
+                            break;
+                        }
                     }
                 } else {
                     if (!showOnlyDirectories) {
                         bool extensionChecked = false;
 
-                        for (const auto &pair : iconsWithExtensions) {
-                            const std::string &extension = pair.second;
+                        for (const auto &tuple : iconsWithExtensions) {
+                            const std::string &extension = std::get<1>(tuple);
+                            const std::string &color = std::get<2>(tuple);
+
+                            //filescolor
+
                             if (!extension.empty() && entry.path().extension() == extension) {
-                                cout << prefix << pointers[0] << pair.first << entry.path().filename().string() << endl;
+                                cout << prefix << pointers[0];
+                                if (!color.empty()) {
+                                    cout << color;
+                                }
+                                cout << std::get<0>(tuple) << entry.path().filename().string() << Colours::endColour << endl;
                                 extensionChecked = true;
+                                files++;
                                 break;
                             }
                         }
 
-                        if (!extensionChecked && entry.path().extension().empty() && !isBinaryFile(entry.path().string())) {
-                            cout << prefix << pointers[0] << iconsWithExtensions[5].first << entry.path().filename().string() << endl;
-                        } else if (!extensionChecked && isBinaryFile(entry.path().string())) {
-                            cout << prefix << pointers[0] << Colours::greenColour << iconsWithExtensions[3].first << entry.path().filename().string() << Colours::endColour << endl;
-                        } else if (!extensionChecked) {
-                            cout << prefix << pointers[0] << entry.path().filename().string() << endl;
-                        }
+                        if (!extensionChecked) {
+                            bool isBinary = isBinaryFile(entry.path().string());
+                            bool hasExtension = !entry.path().extension().empty();
 
-                        files++;
+                            for (const auto &tuple : iconsWithExtensions) {
+                                const std::string &icon = std::get<0>(tuple);
+                                const std::string &extension = std::get<1>(tuple);
+                                const std::string &color = std::get<2>(tuple);
+
+                                if (!extension.empty() && entry.path().extension() == extension) {
+                                    cout << prefix << pointers[0];
+                                    if (!color.empty()) {
+                                        cout << color;
+                                    }
+                                    cout << icon << entry.path().filename().string() << Colours::endColour << endl;
+                                    extensionChecked = true;
+                                    files++;
+                                    break;
+                                }
+                            }
+                            if (!extensionChecked && hasExtension && !isBinary) {
+                                for (const auto &tuple : iconsWithExtensions) {
+                                    const std::string &icon = std::get<0>(tuple);
+                                    if (std::get<1>(tuple).empty()) {
+                                        cout << prefix << pointers[0] << icon << entry.path().filename().string() << endl;
+                                        files++;
+                                        break;
+                                    }
+                                }
+                            } else if (!extensionChecked && isBinary) {
+                                for (const auto &tuple : iconsWithExtensions) {
+                                    const std::string &icon = std::get<0>(tuple);
+                                    const std::string &color = std::get<2>(tuple);
+                                    const std::tuple<std::string, std::string, std::string> &sixthElement = iconsWithExtensions[19];
+                                    std::string sixthIcon = std::get<0>(sixthElement);
+                                    if (std::get<1>(tuple).empty() && !color.empty()) {
+                                        cout << prefix << pointers[0] << Colours::greenColour << sixthIcon << entry.path().filename().string() << Colours::endColour << endl;
+                                        break;
+                                    }
+                                }
+                            } else if (!extensionChecked) {
+                                cout << prefix << pointers[0] << entry.path().filename().string() << endl;
+                            }
+                            files++;
+                        }
                     }
                 }
+
             } catch (const std::filesystem::filesystem_error &ex) {
                 cerr << "Error: " << ex.what() << endl;
             }
@@ -163,7 +222,7 @@ public:
     } catch (const std::filesystem::filesystem_error &ex) {
         cerr << "Error: " << ex.what() << endl;
     }
-}
+};
 
     void summary(const std::map<std::string, std::string>& translations) {
         std::string translatedDirectories = translations.at("directories_trn");
@@ -175,6 +234,15 @@ public:
 
 void showVer(const std::map<std::string, std::string>& translations) {
     std::cout << "Etree " << translations.at("version") << " by Rompelhd" << std::endl;
+}
+
+void printDirectory(const std::string& directory) {
+    if (fs::equivalent(fs::path(directory), fs::current_path())) {
+        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
+        dirs++;
+    } else {
+        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
+    }
 }
 
 //void updating() {
@@ -233,11 +301,7 @@ bool disableColorsFlag = false;
 void parame_f(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameFFlag) {
     std::string currentDirectory = fs::current_path().string();
 
-    if (fs::equivalent(fs::path(directory), fs::current_path())) {
-        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
-    } else {
-        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
-    }
+    printDirectory(directory);
 
     tree.walk(directory, "", false, false, false, parameFFlag);
 
@@ -246,11 +310,7 @@ void parame_f(const std::string& directory, Tree& tree, const std::map<std::stri
 void parame_a(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool showHiddenFiles) {
     std::string currentDirectory = fs::current_path().string();
 
-    if (fs::equivalent(fs::path(directory), fs::current_path())) {
-        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
-    } else {
-        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
-    }
+    printDirectory(directory);
 
     tree.walk(directory, "", showHiddenFiles, false, false, false);
 
@@ -267,8 +327,9 @@ void parame_a(const std::string& directory, Tree& tree, const std::map<std::stri
 void parame_d(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameDFlag) {
     bool showHiddenFiles = false;
     bool showOnlyDirectories = false;
+    std::string currentDirectory = fs::current_path().string();
 
-    std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
+    printDirectory(directory);
 
     tree.walk(directory, "", false, showOnlyDirectories, parameDFlag, false);
 
@@ -281,11 +342,7 @@ void parame_n(const std::string& directory, Tree& tree, const std::map<std::stri
     bool showOnlyDirectories = false;
     std::string currentDirectory = fs::current_path().string();
 
-    if (fs::equivalent(fs::path(directory), fs::current_path())) {
-        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
-    } else {
-        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
-    }
+    printDirectory(directory);
 
     tree.walk(directory, "", showHiddenFiles, false, false, false);
 
