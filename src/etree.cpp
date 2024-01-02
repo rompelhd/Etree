@@ -2,8 +2,6 @@
 #include "../include/json.hpp"
 #include <curl/curl.h>
 #include <algorithm>
-#include <iostream>
-#include <fstream>
 #include <vector>
 #include <regex>
 
@@ -153,8 +151,6 @@ public:
                             const std::string &extension = std::get<1>(tuple);
                             const std::string &color = std::get<2>(tuple);
 
-                            //filescolor
-
                             if (!extension.empty() && entry.path().extension() == extension) {
                                 cout << prefix << pointers[0];
                                 if (!color.empty()) {
@@ -225,10 +221,7 @@ public:
 };
 
     void summary(const std::map<std::string, std::string>& translations) {
-        std::string translatedDirectories = translations.at("directories_trn");
-        std::string translatedFiles = translations.at("files_trn");
-
-        std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translatedDirectories << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translatedFiles << Colours::endColour << std::endl;
+        std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translations.at("files_trn") << Colours::endColour << std::endl;
     }
 };
 
@@ -319,10 +312,7 @@ void parame_a(const std::string& directory, Tree& tree, const std::map<std::stri
     size_t dirs = tree.getDirsCount();
     size_t files = tree.getFilesCount();
 
-    std::string translatedDirectories = translations.at("directories_trn");
-    std::string translatedFiles = translations.at("files_trn");
-
-    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translatedDirectories << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translatedFiles << Colours::endColour << std::endl;
+    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translations.at("files_trn") << Colours::endColour << std::endl;
 
 }
 
@@ -335,8 +325,7 @@ void parame_d(const std::string& directory, Tree& tree, const std::map<std::stri
 
     tree.walk(directory, "", false, showOnlyDirectories, parameDFlag, false);
 
-    std::string translatedDirectories = translations.at("directories_trn");
-    std::cout << "\n" << Colours::greenColour << tree.getDirsCount() << Colours::endColour << " " << Colours::blueColour << translatedDirectories << Colours::endColour << std::endl;
+    std::cout << "\n" << Colours::greenColour << tree.getDirsCount() << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << std::endl;
 }
 
 void parame_n(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations) {
@@ -351,15 +340,13 @@ void parame_n(const std::string& directory, Tree& tree, const std::map<std::stri
     size_t dirs = tree.getDirsCount();
     size_t files = tree.getFilesCount();
 
-    std::string translatedDirectories = translations.at("directories_trn");
-    std::string translatedFiles = translations.at("files_trn");
-
-    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translatedDirectories << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translatedFiles << Colours::endColour << std::endl;
+    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translations.at("files_trn") << Colours::endColour << std::endl;
 }
 
 void param(int argc, char *argv[]) {
     std::string directory = ".";
     std::string languageCode = "es";
+
     bool showHelpFlag = false;
     bool parameNFlag = false;
     bool parameAFlag = false;
@@ -435,11 +422,7 @@ void param(int argc, char *argv[]) {
         return;
     }
 
-    if (fs::equivalent(fs::path(directory), fs::current_path())) {
-        std::cout << Colours::blueColour << "." << Colours::endColour << std::endl;
-    } else {
-        std::cout << Colours::blueColour << directory << Colours::endColour << std::endl;
-    }
+    printDirectory(directory);
 
     Tree tree;
 
