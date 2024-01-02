@@ -14,6 +14,9 @@ using json = nlohmann::json;
 using namespace std;
 namespace fs = filesystem;
 
+static std::string translatedDirectories;
+static std::string translatedFiles;
+
 size_t dirs = 0;
 size_t files = 0;
 std::set<std::string> visited_links;
