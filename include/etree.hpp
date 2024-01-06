@@ -14,12 +14,10 @@ using json = nlohmann::json;
 using namespace std;
 namespace fs = filesystem;
 
-static std::string translatedDirectories;
-static std::string translatedFiles;
-
 size_t dirs = 0;
 size_t files = 0;
 std::set<std::string> visited_links;
+std::string url = "https://github.com/rompelhd/Etree/blob/main/version";
 vector<string> inner_pointers = { "├── ", "│   " };
 vector<string> final_pointers = { "└── ", "    " };
 
