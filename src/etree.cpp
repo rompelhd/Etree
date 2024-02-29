@@ -3,7 +3,6 @@
 #include <curl/curl.h>
 #include <algorithm>
 #include <vector>
-#include <regex>
 
 class Tree {
 private:
@@ -301,13 +300,10 @@ void checkupdate(const std::map<std::string, std::string>& translations) {
         if (res != CURLE_OK) {
             std::cerr << translations.at("error_version_download") << curl_easy_strerror(res) << std::endl;
         } else {
-            std::regex patron("(v\\.\\d+\\.\\d+\\.\\d+)");
-
-            std::smatch coincidencia;
-            if (std::regex_search(buffer, coincidencia, patron)) {
-                std::string version_descargada = coincidencia[1];
-
-                if (version_translations == version_descargada) {
+            size_t pos = buffer.find("v.");
+            if (pos != std::string::npos) {
+                std::string download_ver = buffer.substr(pos, 7);
+                if (version_translations == download_ver) {
                     std::cout << translations.at("version_is_update") << std::endl;
                 } else {
                     std::cout << translations.at("version_need_update") << std::endl;
@@ -323,9 +319,7 @@ void checkupdate(const std::map<std::string, std::string>& translations) {
 
 void showHelp(const std::map<std::string, std::string>& translations) {
     std::cout << translations.at("usage") << std::endl;
-    std::cout << translations.at("display_tree_description") << std::endl;
-    std::cout << translations.at("default_directory_description") << std::endl;
-    std::cout << translations.at("arguments") << std::endl;
+    std::cout << translations.at("list_op") << std::endl;
     std::cout << translations.at("help_option") << std::endl;
     std::cout << translations.at("-a-fun") << std::endl;
     std::cout << translations.at("-d-fun") << std::endl;
@@ -374,7 +368,7 @@ void param(int argc, char *argv[]) {
     bool showVerFlag = false;
     bool parameDFlag = false;
     bool parameFFlag = false;
-    bool parameLevelsFlag = false;
+    bool parameLFlag = false;
 
     std::string languageFilePath = Paths::getLanguageFilePath(languageCode);
     std::map<std::string, std::string> translations = loadTranslations(languageFilePath);
@@ -389,7 +383,7 @@ void param(int argc, char *argv[]) {
         } else if (arg == "-a") {
             parameAFlag = true;
         } else if (arg == "-L") {
-            parameLevelsFlag = true;
+            parameLFlag = true;
         } else if (arg == "-d") {
             parameDFlag = true;
         } else if (arg == "-f") {
