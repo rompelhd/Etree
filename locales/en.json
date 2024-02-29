@@ -1,1 +1,17 @@
-
+{
+    "Directories": "directories_trn",
+    "Files": "files_trn",
+    "Version found: ": "version_found",
+    "No version found": "no_version_found",
+    "v.0.4.1": "version",
+    "Everything is up to date.": "version_is_update",
+    "An update is pending.": "version_need_update",
+    "Error downloading the file: ": "error_version_download",
+    "Usage: etree [directory].": "usage",
+    "  ------- Listing options -------": "list_op",
+    "  Arguments:": "arguments",
+    "  --help     Show this help message": "help_option",
+    "  -a         All files are listed.": "-a-fun",
+    "  -d         Only the folders are listed.": "-d-fun",
+    "  -f         Prints the absolute path to each file.": "-f-fun"
+}
