@@ -17,7 +17,8 @@ namespace fs = filesystem;
 size_t dirs = 0;
 size_t files = 0;
 std::set<std::string> visited_links;
-std::string url = "https://github.com/rompelhd/Etree/blob/main/version";
+std::string url = "https://raw.githubusercontent.com/rompelhd/Etree/main/version";
+std::string currentDirectory = fs::current_path().string();
 vector<string> inner_pointers = { "├── ", "│   " };
 vector<string> final_pointers = { "└── ", "    " };
 
@@ -45,6 +46,11 @@ namespace Paths {
     inline std::string getLanguageFilePath(const std::string& languageCode) {
         return getEtreeFolderPath() + "locales/" + languageCode + ".json";
     }
+}
+
+//RelativePath
+inline std::string relativePath(const fs::path& entryPath) {
+    return fs::relative(entryPath, fs::current_path()).string();
 }
 
 //Curl function
