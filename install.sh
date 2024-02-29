@@ -16,6 +16,8 @@ attempts=0
 
 transletions="https://raw.githubusercontent.com/rompelhd/Etree/main/locales/"
 
+system_lang=$(echo $LANG | cut -d'_' -f1)
+
 echo -e "\n${greenColour}>=======>   >=>                                           >>                  >=>              >=>                     >=>                >=>  >=>"
 echo -e ">=>         >=>                                          >>=>                 >=>              >=>                     >=>                >=>  >=>"
 echo -e ">=>       >=>>==> >> >==>   >==>      >==>              >> >=>     >=>  >=> >=>>==>    >=>     >=> >==>>==>   >===>  >=>>==>    >=> >=>   >=>  >=>"
@@ -57,29 +59,15 @@ else
     echo "Error downloading"
 fi
 
-while [ $attempts -lt 3 ]; do
-    echo -ne "${endColour}\n${blueColour}Which language would you like to download?${turquoiseColour} Type ${greenColour}'es'${blueColour}${turquoiseColour} or ${greenColour}'en${greenColour}'${turquoiseColour}: "
-    read LANGUAGE
+declare -A languages
+languages["es"]="es.json"
+languages["en"]="en.json"
 
-    case $LANGUAGE in
-        "es")
-            FILENAME="es.json"
-            break
-            ;;
-        "en")
-            FILENAME="en.json"
-            break
-            ;;
-        *)
-            echo "\nInvalid language. Please select 'es' for Spanish or 'en' for English."
-            attempts=$((attempts+1))
-            ;;
-    esac
-done
+FILENAME=${languages[$system_lang]}
 
-if [ $attempts -eq 3 ]; then
-    echo "You have exceeded the maximum number of attempts. Exiting..."
-    exit 1
+if [ -z "$FILENAME" ]; then
+    FILENAME="en.json"
+    echo "Default language, language not found in environment variable $LANG"
 fi
 
 transletionsf="$transletions$FILENAME"
