@@ -8,8 +8,6 @@
     "Hay una actualizacion pendiente.": "version_need_update",
     "Error al descargar el archivo: ": "error_version_download",
     "Uso: etree [directorio]": "usage",
-    "  Mostrar un árbol de directorios y archivos en el directorio especificado.": "display_tree_description",
-    "  Si no se proporciona ningún directorio, se utiliza el directorio actual.": "default_directory_description",
     "  ------- Opciones de listado -------": "list_op",
     "  Argumentos:": "arguments",
     "  --help     Mostrar este mensaje de ayuda": "help_option",
