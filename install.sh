@@ -11,12 +11,25 @@ turquoiseColour="\e[0;36m\033[1m"
 grayColour="\e[0;37m\033[1m"
 
 Transletions_DIR="$HOME/.config/etree/locales"
+Confile_DIR="$HOME/.config/etree/"
 
-attempts=0
+versionS=$(curl -s https://raw.githubusercontent.com/rompelhd/Etree/main/version)
 
 transletions="https://raw.githubusercontent.com/rompelhd/Etree/main/locales/"
 
 system_lang=$(echo $LANG | cut -d'_' -f1)
+
+ARCHITECTURE=$(uname -m)
+
+commands=("curl" "tee")
+
+archi=("x86_64" "aarch64" "i686" "armhf")
+
+declare -A languages
+languages["es"]="es.json"
+languages["en"]="en.json"
+
+FILENAME=${languages[$system_lang]}
 
 echo -e "\n${greenColour}>=======>   >=>                                           >>                  >=>              >=>                     >=>                >=>  >=>"
 echo -e ">=>         >=>                                          >>=>                 >=>              >=>                     >=>                >=>  >=>"
@@ -27,43 +40,27 @@ echo -e ">=>         >=>    >=>    >>        >>               >=>      >=>  >=> 
 echo -e ">=======>    >=>  >==>     >====>    >====>         >=>        >=>   >==>=>    >=>     >=>     >=> >==>  >=> >=> >=>    >=>    >==>>>==> >==> >==>\n"
 echo -e "                                                                                                                                       by rompelhd${endColour}\n"
 
-ARCHITECTURE=$(uname -m)
+for command in "${commands[@]}"; do
+    if ! which $command >/dev/null 2>&1; then
+        echo "$command is not installed"
+        exit 1
+    fi
+done
 
-if ! which curl >/dev/null 2>&1; then
-    echo "Curl is not installed"
-fi
-
-if [ "$ARCHITECTURE" == "x86_64" ]; then
-    binary="https://github.com/rompelhd/Etree/releases/download/Etree_x86_64/etree"
-    arch="x86_64"
-elif [ "$ARCHITECTURE" == "armhf" ]; then
-    binary="https://github.com/rompelhd/Etree/releases/download/Etree_arm/etree"
-    arch="armhf"
-elif [ "$ARCHITECTURE" == "arm64" ]; then
-    binary="https://github.com/rompelhd/Etree/releases/download/Etree_arm64/etree"
-    arch="arm64"
-elif [ "$ARCHITECTURE" == "i686" ]; then
-    binary="https://github.com/rompelhd/Etree/releases/download/Etree_i686/etree"
-    arch="i686"
+if [[ " ${archi[@]} " =~ " $ARCHITECTURE " ]]; then
+    binary="https://github.com/rompelhd/Etree/releases/download/$versionS/etree-$ARCHITECTURE-unknown-linux"
 else
-    echo "Unsupported arch"
-    exit 1
+    echo "Error Setting a binary"
 fi
 
 if [ -n "$binary" ]; then
-    echo -e "${blueColour}Downloading etree ${greenColour}$arch \n${greenColour}"
-    curl -O -J -L "$binary"
-    chmod +x etree
-    mv etree /bin/
+    echo -e "${blueColour}Downloading ${greenColour}Etree${purpleColour} $ARCHITECTURE \n${greenColour}"
+    curl -O -J -L -# "$binary"
+    mv etree-$ARCHITECTURE-unknown-linux /bin/etree
+    chmod +x /bin/etree
 else
     echo "Error downloading"
 fi
-
-declare -A languages
-languages["es"]="es.json"
-languages["en"]="en.json"
-
-FILENAME=${languages[$system_lang]}
 
 if [ -z "$FILENAME" ]; then
     FILENAME="en.json"
@@ -72,24 +69,33 @@ fi
 
 transletionsf="$transletions$FILENAME"
 
-echo -e "\n${blueColour}Downloading file ${greenColour}$FILENAME ${blueColour}...\n${greenColour}"
-curl -O -J -L $transletionsf
+echo -e "\n${blueColour}Downloading${greenColour} Translation ${purpleColour}$FILENAME\n${greenColour}"
+curl -O -J -L -# $transletionsf | sed -r 's/.{50}$//'
 
 if [ -d "$Transletions_DIR" ]; then
-    echo -e "\n${blueColour}The directory ${greenColour} $Transletions_DIR${blueColour} already exists."
-    echo -e "\n${blueColour}Copying translations\n"
+    echo -e "\n${blueColour}The directory${greenColour} $Transletions_DIR${purpleColour} already exists.\n"
     mv $FILENAME $Transletions_DIR
 else
     mkdir -p "$Transletions_DIR"
     if [ $? -eq 0 ]; then
-        echo -e "\n${blueColour}Directory created in ${greenColour}$Transletions_DIR"
-        echo -e "\n${blueColour}Copying translations\n"
+        echo -e "\n${blueColour}Directory created in ${greenColour}$Transletions_DIR\n"
         mv $FILENAME $Transletions_DIR
     else
         echo -e "\nError creating directory in $Transletions_DIR\n"
         exit 1
     fi
 fi
+
+if [ -n "$FILENAME" ] && [ ! -f "$Confile_DIR/etree.conf" ]; then
+    LANGUAGE=$(basename "$FILENAME" .json | cut -d '.' -f 1)
+elif [ -n "$FILENAME" ]; then
+    rm $Confile_DIR/etree.conf
+    LANGUAGE=$(basename "$FILENAME" .json | cut -d '.' -f 1)
+fi
+
+echo -e "${blueColour}Creating ${greenColour}etree.conf\n"
+echo "#Etree Config" | tee -a $Confile_DIR/etree.conf > /dev/null
+echo "languageCode=$LANGUAGE" | tee -a $Confile_DIR/etree.conf > /dev/null
 
 echo -e "${greenColour}>=======>"
 echo -e ">=>        >>            >>         >=>"
