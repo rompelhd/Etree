@@ -43,7 +43,6 @@ echo -e "                                                                       
 for command in "${commands[@]}"; do
     if ! which $command >/dev/null 2>&1; then
         echo "$command is not installed"
-        exit 1
     fi
 done
 
