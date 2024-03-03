@@ -4,6 +4,35 @@
 #include <algorithm>
 #include <vector>
 
+//Load LanguageCode
+
+std::string getLanguageCode(const std::string& filename) {
+    std::ifstream configFile(filename);
+    if (!configFile) {
+        std::cerr << "Error opening the config file: " << filename << std::endl;
+        return "";
+    }
+
+    std::string line;
+    while (std::getline(configFile, line)) {
+        if (line.empty() || line[0] == '#') continue;
+
+        auto pos = line.find('=');
+        if (pos != std::string::npos) {
+            std::string key = line.substr(0, pos);
+            std::string value = line.substr(pos + 1);
+            key.erase(0, key.find_first_not_of(" \t"));
+            key.erase(key.find_last_not_of(" \t") + 1);
+            value.erase(0, value.find_first_not_of(" \t"));
+            value.erase(value.find_last_not_of(" \t") + 1);
+            if (key == "languageCode") {
+                return value;
+            }
+        }
+    }
+    return "";
+}
+
 class Tree {
 private:
     void exploreDirectory(const fs::path &path, const string &prefix) {
@@ -16,7 +45,6 @@ private:
     bool isBinaryFile(const string &filename) {
     ifstream file(filename, ios::binary);
     if (!file) {
-        cerr << "Error opening the file: " << filename << endl;
         return false;
     }
 
@@ -93,19 +121,26 @@ void walk(const string &directory, const string &prefix, bool parameAFlag, bool 
             fs::directory_entry entry = entries[index];
             vector<string> pointers = index == entries.size() - 1 ? final_pointers : inner_pointers;
 
-            try {
-                if (fs::is_character_file(entry.path()) || fs::is_block_file(entry.path())) {
-                    cout << "Dispositivo especial: " << entry.path().string() << endl;
-                    continue;
-                }
+              try {
 
                 if (entry.is_symlink()) {
-                    string canonical_path = fs::canonical(entry.path()).string();
-
-                    if (visited_links.find(canonical_path) != visited_links.end()) {
-                        continue;
+                    try {
+                        fs::path target = fs::read_symlink(entry.path());
+                        fs::path absoluteTarget = fs::canonical(target);
+                        cout << prefix << pointers[0];
+                        cout << " " << entry.path().c_str() << " ⇒ " << absoluteTarget.c_str() << endl;
+                    } catch (const std::filesystem::filesystem_error& e) {
+                        if (e.code() == std::errc::no_such_file_or_directory) {
+                            continue;
+                        }
                     }
-                    visited_links.insert(canonical_path);
+                }
+
+                if (fs::is_character_file(entry.path()) || fs::is_block_file(entry.path())) {
+                    cout << prefix << pointers[0];
+                    cout << " " << entry.path().filename().string() << endl;
+                    files++;
+                    continue;
                 }
 
                 // Cout if the entry have been a directory
@@ -360,7 +395,6 @@ void parame_n(const std::string& directory, Tree& tree, const std::map<std::stri
 
 void param(int argc, char *argv[]) {
     std::string directory = ".";
-    std::string languageCode = "es";
 
     bool showHelpFlag = false;
     bool parameNFlag = false;
@@ -370,6 +404,7 @@ void param(int argc, char *argv[]) {
     bool parameFFlag = false;
     bool parameLFlag = false;
 
+    std::string languageCode = getLanguageCode(Paths::getEtreeFolderPath() + "etree.conf");
     std::string languageFilePath = Paths::getLanguageFilePath(languageCode);
     std::map<std::string, std::string> translations = loadTranslations(languageFilePath);
 
