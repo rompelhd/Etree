@@ -1,14 +1,9 @@
 #!/bin/bash
-
 greenColour="\e[0;32m\033[1m"
 endColour="\033[0m\e[0m"
 redColour="\e[0;31m\033[1m"
-orangeColour="\033[38;5;202m"
 blueColour="\e[0;34m\033[1m"
-yellowColour="\e[0;33m\033[1m"
 purpleColour="\e[0;35m\033[1m"
-turquoiseColour="\e[0;36m\033[1m"
-grayColour="\e[0;37m\033[1m"
 
 Transletions_DIR="$HOME/.config/etree/locales"
 Confile_DIR="$HOME/.config/etree/"
@@ -31,18 +26,19 @@ languages["en"]="en.json"
 
 FILENAME=${languages[$system_lang]}
 
-echo -e "\n${greenColour}>=======>   >=>                                           >>                  >=>              >=>                     >=>                >=>  >=>"
-echo -e ">=>         >=>                                          >>=>                 >=>              >=>                     >=>                >=>  >=>"
-echo -e ">=>       >=>>==> >> >==>   >==>      >==>              >> >=>     >=>  >=> >=>>==>    >=>     >=> >==>>==>   >===>  >=>>==>    >=> >=>   >=>  >=>"
-echo -e ">=====>     >=>    >=>    >>   >=>  >>   >=>           >=>  >=>    >=>  >=>   >=>    >=>  >=>  >=>  >=>  >=> >=>       >=>    >=>   >=>   >=>  >=>"
-echo -e ">=>         >=>    >=>    >>===>>=> >>===>>=>         >=====>>=>   >=>  >=>   >=>   >=>    >=> >=>  >=>  >=>   >==>    >=>   >=>    >=>   >=>  >=>"
-echo -e ">=>         >=>    >=>    >>        >>               >=>      >=>  >=>  >=>   >=>    >=>  >=>  >=>  >=>  >=>     >=>   >=>    >=>   >=>   >=>  >=>"
-echo -e ">=======>    >=>  >==>     >====>    >====>         >=>        >=>   >==>=>    >=>     >=>     >=> >==>  >=> >=> >=>    >=>    >==>>>==> >==> >==>\n"
-echo -e "                                                                                                                                       by rompelhd${endColour}\n"
+echo -e "\n${greenColour}>=======>   >=>"
+echo -e ">=>         >=>"
+echo -e ">=>       >=>>==> >> >==>   >==>      >==>"
+echo -e ">=====>     >=>    >=>    >>   >=>  >>   >=>"
+echo -e ">=>         >=>    >=>    >>===>>=> >>===>>=>"
+echo -e ">=>         >=>    >=>    >>        >>"
+echo -e ">=======>    >=>  >==>     >====>    >====>\n"
+echo -e "                                 by rompelhd${endColour}\n"
 
 for command in "${commands[@]}"; do
     if ! which $command >/dev/null 2>&1; then
         echo "$command is not installed"
+        exit 1
     fi
 done
 
