@@ -7,7 +7,7 @@ Etree or Enhance Tree is a simple project to improve the old and boring tree, co
 When I upload different versions for different architectures I will update this but for now it was tested on:
 
 - Cross-platform:
-  - works on Linux/UNIX, Android
+  - works on Linux/UNIX, Android "Termux"
     - Linux x86-64 and arm64.
     - Android arm64.
   
