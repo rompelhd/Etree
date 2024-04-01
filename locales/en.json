@@ -3,7 +3,7 @@
     "Files": "files_trn",
     "Version found: ": "version_found",
     "No version found": "no_version_found",
-    "v.0.4.1": "version",
+    "v.0.4.2": "version",
     "Everything is up to date.": "version_is_update",
     "An update is pending.": "version_need_update",
     "Error downloading the file: ": "error_version_download",
