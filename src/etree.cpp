@@ -38,7 +38,7 @@ private:
     void exploreDirectory(const fs::path &path, const string &prefix) {
         try {
         } catch (const std::filesystem::filesystem_error &ex) {
-            cerr << "Error: " << ex.what() << endl;
+            //cerr << "Error: " << ex.what() << endl;
         }
     }
 
@@ -122,18 +122,13 @@ void walk(const string &directory, const string &prefix, bool parameAFlag, bool 
             vector<string> pointers = index == entries.size() - 1 ? final_pointers : inner_pointers;
 
               try {
-
                 if (entry.is_symlink()) {
-                    try {
-                        fs::path target = fs::read_symlink(entry.path());
-                        fs::path absoluteTarget = fs::canonical(target);
-                        cout << prefix << pointers[0];
-                        cout << " " << entry.path().c_str() << " ⇒ " << absoluteTarget.c_str() << endl;
-                    } catch (const std::filesystem::filesystem_error& e) {
-                        if (e.code() == std::errc::no_such_file_or_directory) {
-                            continue;
-                        }
-                    }
+                    fs::path target = fs::read_symlink(entry.path());
+                    fs::path absoluteTarget = fs::canonical(target);
+                    cout << prefix << pointers[0];
+                    cout << " " << entry.path().c_str() << " ⇒ " << absoluteTarget.c_str() << endl;
+                    files++;
+                    continue;
                 }
 
                 if (fs::is_character_file(entry.path()) || fs::is_block_file(entry.path())) {
@@ -284,11 +279,11 @@ void walk(const string &directory, const string &prefix, bool parameAFlag, bool 
                 }
 
             } catch (const std::filesystem::filesystem_error &ex) {
-                cerr << "Error: " << ex.what() << endl;
+                //cerr << "Error: " << ex.what() << endl;
             }
         }
     } catch (const std::filesystem::filesystem_error &ex) {
-        cerr << "Error: " << ex.what() << endl;
+        //cerr << "Error: " << ex.what() << endl;
     }
 };
 
