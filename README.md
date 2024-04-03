@@ -7,13 +7,20 @@ Etree or Enhance Tree is a simple project to improve the old and boring tree, co
 When I upload different versions for different architectures I will update this but for now it was tested on:
 
 - Cross-platform:
-  - works on Linux/UNIX, Android "Termux"
+  - works on Linux/UNIX, Android via Termux
     - Linux x86-64 and arm64.
     - Android arm64.
   
-
 ![github](https://github.com/rompelhd/Etree/assets/75935831/dfb30104-b0eb-418a-88fe-a9519281534d)
 
-# Contributions
+## Installation
+
+With this small bash script we automate the downloading of the configuration files and the necessary binary, simply run:
+
+```bash
+curl -sS https://raw.githubusercontent.com/rompelhd/Etree/main/install.sh | bash
+```
+
+## Contributions
 
 Feel totally free to make proposals or help the project :3
