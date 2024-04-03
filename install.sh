@@ -36,7 +36,7 @@ echo -e ">=======>    >=>  >==>     >====>    >====>\n"
 echo -e "                                 by rompelhd${endColour}\n"
 
 for command in "${commands[@]}"; do
-    if ! which $command >/dev/null 2>&1; then
+    if ! command -v $command &>/dev/null; then
         echo "$command is not installed"
         exit 1
     fi
@@ -63,7 +63,7 @@ if [ -n "$binary" ]; then
         mv etree-$ARCHITECTURE-termux-version /data/data/com.termux/files/usr/bin/etree
         chmod +x /data/data/com.termux/files/usr/bin/etree
     else
-        mv etree-$ARCHITECTURE-unknown-linux /bin/etree
+        sudo mv etree-$ARCHITECTURE-unknown-linux /bin/etree
         chmod +x /bin/etree
     fi
 else
