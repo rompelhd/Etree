@@ -42,17 +42,30 @@ for command in "${commands[@]}"; do
     fi
 done
 
+if [ -d "/data/data/com.termux" ]; then
+    termux="termux-version"
+fi
+
 if [[ " ${archi[@]} " =~ " $ARCHITECTURE " ]]; then
-    binary="https://github.com/rompelhd/Etree/releases/download/$versionS/etree-$ARCHITECTURE-unknown-linux"
+    if [ -n "$termux" ]; then
+        binary="https://github.com/rompelhd/Etree/releases/download/$versionS/etree-$ARCHITECTURE-$termux"
+    else
+        binary="https://github.com/rompelhd/Etree/releases/download/$versionS/etree-$ARCHITECTURE-unknown-linux"
+    fi
 else
     echo "Error Setting a binary"
 fi
 
 if [ -n "$binary" ]; then
-    echo -e "${blueColour}Downloading ${greenColour}Etree${purpleColour} $ARCHITECTURE \n${greenColour}"
+    echo -e "${blueColour}Downloading ${greenColour}Etree${purpleColour} $ARCHITECTURE $termux \n${greenColour}"
     curl -O -J -L -# "$binary"
-    mv etree-$ARCHITECTURE-unknown-linux /bin/etree
-    chmod +x /bin/etree
+    if [ -n "$termux" ]; then
+        mv etree-$ARCHITECTURE-termux-version /data/data/com.termux/files/usr/bin/etree
+        chmod +x /data/data/com.termux/files/usr/bin/etree
+    else
+        mv etree-$ARCHITECTURE-unknown-linux /bin/etree
+        chmod +x /bin/etree
+    fi
 else
     echo "Error downloading"
 fi
