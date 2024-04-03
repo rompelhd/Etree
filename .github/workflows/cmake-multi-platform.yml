@@ -1,4 +1,4 @@
-name: CMake on multiple platforms
+name: CMake on Ubuntu with GCC
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
 
       matrix:
         build_type: [Release]
-        c_compiler: [gcc, clang]
+        c_compiler: [gcc]
 
     steps:
     - name: Checkout
@@ -33,8 +33,8 @@ jobs:
     - name: Configure CMake
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_CXX_COMPILER=g++
+        -DCMAKE_C_COMPILER=gcc
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
 
