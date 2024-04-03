@@ -30,11 +30,8 @@ jobs:
     - name: Download translations
       run: curl -sSL -o $HOME/.config/etree/locales/en.json https://raw.githubusercontent.com/rompelhd/Etree/main/locales/en.json
 
-    - name: Create Config directory
-      run: mkdir -p $HOME/.config/etree
-
     - name: Create etree.conf
-      run: echo -e "#Etree Config\nlanguageCode=en.json" > $HOME/.config/etree/etree.conf
+      run: echo -e "#Etree Config\nlanguageCode=en" > $HOME/.config/etree/etree.conf
 
     - name: Set reusable strings
       id: strings
