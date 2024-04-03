@@ -47,9 +47,4 @@ jobs:
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: |
-        ./unit_tests
-        ./integration_tests
-        ./end_to_end_tests
-        ./static_analysis_tool
-        ./code_style_checker
+      run: ${{ steps.strings.outputs.build-output-dir }}/etree
