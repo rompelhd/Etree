@@ -63,7 +63,11 @@ if [ -n "$binary" ]; then
         mv etree-$ARCHITECTURE-termux-version /data/data/com.termux/files/usr/bin/etree
         chmod +x /data/data/com.termux/files/usr/bin/etree
     else
-        sudo mv etree-$ARCHITECTURE-unknown-linux /bin/etree
+        if [ -w /usr/bin ]; then
+            mv etree-$ARCHITECTURE-unknown-linux /bin/etree
+        else
+            sudo mv etree-$ARCHITECTURE-unknown-linux /bin/etree
+        fi
         chmod +x /bin/etree
     fi
 else
