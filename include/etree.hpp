@@ -53,12 +53,6 @@ inline std::string relativePath(const fs::path& entryPath) {
     return fs::relative(entryPath, fs::current_path()).string();
 }
 
-//Curl function
-inline size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *buffer) {
-    buffer->append(static_cast<char *>(contents), size * nmemb);
-    return size * nmemb;
-}
-
 //Translation Upload
 std::map<std::string, std::string> loadTranslations(const std::string& filePath) {
     std::map<std::string, std::string> translations;
