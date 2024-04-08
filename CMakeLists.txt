@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(etree_project)
 
-add_executable(etree src/etree.cpp src/update.cpp)
+add_executable(etree src/etree.cpp src/config_utils.cpp src/update.cpp)
 
 file(GLOB HEADER_FILES include/*.h)
 
