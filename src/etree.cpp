@@ -77,10 +77,6 @@ void walk(const string &directory, const string &prefix, bool parameAFlag, bool 
                         continue;
                     }
 
-                    if (!parameDFlag && parameDFlag) {
-                        walk(entry.path(), prefix + "  ", parameAFlag, parameDFlag, parameFFlag, parameNFlag);
-                    }
-
                     entries.push_back(entry);
                  }
              }
@@ -287,10 +283,14 @@ void printDirectory(const std::string& directory, bool parameNFlag) {
 void showHelp(const std::map<std::string, std::string>& translations) {
     std::cout << translations.at("usage") << std::endl;
     std::cout << translations.at("list_op") << std::endl;
-    std::cout << translations.at("help_option") << std::endl;
     std::cout << translations.at("-a-fun") << std::endl;
     std::cout << translations.at("-d-fun") << std::endl;
     std::cout << translations.at("-f-fun") << std::endl;
+    std::cout << translations.at("list_grap") << std::endl;
+    std::cout << translations.at("-n-fun") << std::endl;
+    std::cout << translations.at("list_mis") << std::endl;
+    std::cout << translations.at("-ver-fun") << std::endl;
+    std::cout << translations.at("help_option") << std::endl;
 }
 
 void parame_f(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameFFlag) {
@@ -339,6 +339,7 @@ void param(int argc, char *argv[]) {
     std::string languageCode = ConfigLoad(Paths::getEtreeFolderPath() + "etree.conf");
     std::string languageFilePath = Paths::getLanguageFilePath(languageCode);
     std::map<std::string, std::string> translations = loadTranslations(languageFilePath);
+    std::set<std::string> recognizedArgs = {"--help", "--version", "-a", "-L", "-d", "-f", "-n"};
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -364,6 +365,22 @@ void param(int argc, char *argv[]) {
         } else {
             directory = argv[i];
             break;
+        }
+    }
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg[0] == '-' && recognizedArgs.find(arg) == recognizedArgs.end()) {
+            std::cerr << "Etree: Argumento no reconocido: " << arg << std::endl;
+            showHelp(translations);
+            exit(1);
+        }
+    }
+
+    if (!directory.empty()) {
+        if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory)) {
+            std::cerr << directory << " [Error al abrir el directorio]" << std::endl;
+            exit(1);
         }
     }
 
