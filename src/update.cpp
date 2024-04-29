@@ -67,7 +67,7 @@ void checkupdate(const std::map<std::string, std::string>& translations) {
 
                                 for (const auto& version : outdated_versions) {
                                     std::string tag_url = ver_url + version;
-                                    std::cout << "URL for version " << version << ": " << tag_url << std::endl;
+                                    std::cout << "Changes in [ " << version << " ]" << std::endl;
                                     CURL *curl_tag;
                                     std::string buffer_tag;
                                     curl_tag = curl_easy_init();
@@ -77,10 +77,18 @@ void checkupdate(const std::map<std::string, std::string>& translations) {
                                         curl_easy_setopt(curl_tag, CURLOPT_WRITEDATA, &buffer_tag);
                                         res = curl_easy_perform(curl_tag);
                                         if (res == CURLE_OK) {
-                                            std::regex commits_regex("<a href=\".*\">\\s*(\\d+) commits\\s*</a>");
+                                            std::regex li_regex("<li>(.+?)<\\/li>");
                                             std::smatch match;
+                                            std::string::const_iterator search_start(buffer_tag.cbegin());
+                                            while (std::regex_search(search_start, buffer_tag.cend(), match, li_regex)) {
+                                                std::string li_content = match[1];
+                                                std::cout << "Content: " << li_content << std::endl;
+                                                search_start = match.suffix().first;
+                                            }
+
+                                            std::regex commits_regex("<a href=\".*\">\\s*(\\d+) commits\\s*</a>");
                                             if (std::regex_search(buffer_tag, match, commits_regex)) {
-                                                std::cout << "Commits: " << match[1] << std::endl;
+                                                std::cout << "Commits until the last version: " << match[1] << std::endl;
                                             }
                                         } else {
                                             std::cerr << translations.at("error_tag_download") << curl_easy_strerror(res) << std::endl;
