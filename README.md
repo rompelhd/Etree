@@ -33,17 +33,29 @@
 
 <br/>
 
-Etree or Enhance Tree is a simple project to improve the old and boring tree, colors, icons and a configuration file are just small details that I hope to add to improve the application.
-  
+<p align="center">
+    Etree, short for 'Enhance Tree,' is a dynamic project aimed at revitalizing the traditional tree structure through vibrant colors, expressive icons, and customizable configurations.
+</p>
+
+<br/>
+
+## How to Use Etree
+
+Simply type 'etree', and it will start displaying the directory tree of the current directory. If you're unsure about any usage parameters, you can view the available ones with 'etree --help'.
+
 ![github](https://github.com/rompelhd/Etree/assets/75935831/dfb30104-b0eb-418a-88fe-a9519281534d)
 
-## Installation
+<br/>
+
+## Auto Installation
 
 With this small bash script we automate the downloading of the configuration files and the necessary binary, simply run:
 
 ```bash
 curl -sS https://raw.githubusercontent.com/rompelhd/Etree/main/install.sh | bash
 ```
+
+<br/>
 
 ## Contributions
 
