@@ -1,3 +1,4 @@
+#include "../include/basic.hpp"
 #include "../include/update.hpp"
 #include <curl/curl.h>
 #include <regex>
@@ -34,7 +35,7 @@ void checkupdate(const std::map<std::string, std::string>& translations) {
                 if (version_translations == download_ver) {
                     std::cout << translations.at("version_is_update") << std::endl;
                 } else {
-                    std::cout << translations.at("version_need_update") << std::endl;
+                    //std::cout << translations.at("version_need_update") << std::endl;
                     CURL *curl_tags;
                     curl_tags = curl_easy_init();
                     if (curl_tags) {
@@ -59,15 +60,14 @@ void checkupdate(const std::map<std::string, std::string>& translations) {
                                 }
                             }
                             if (!outdated_versions.empty()) {
-                                std::cout << "Number of outdated versions: " << outdated_count << " ==>" << " [";
+                                std::cout << Colours::blueColour << "\nNumber of outdated versions: " << Colours::yellowColour << outdated_count << Colours::blueColour << " ==>" << " [";
                                 for (size_t i = 0; i < outdated_versions.size() - 1; ++i) {
-                                    std::cout << outdated_versions[i] << ", ";
+                                    std::cout << Colours::yellowColour << outdated_versions[i] << Colours::blueColour << ", ";
                                 }
-                                std::cout << outdated_versions.back() << "]" << std::endl;
+                                std::cout << Colours::yellowColour << outdated_versions.back() << Colours::blueColour << "]" << Colours::endColour << std::endl;
 
                                 for (const auto& version : outdated_versions) {
                                     std::string tag_url = ver_url + version;
-                                    std::cout << "Changes in [ " << version << " ]" << std::endl;
                                     CURL *curl_tag;
                                     std::string buffer_tag;
                                     curl_tag = curl_easy_init();
@@ -77,19 +77,21 @@ void checkupdate(const std::map<std::string, std::string>& translations) {
                                         curl_easy_setopt(curl_tag, CURLOPT_WRITEDATA, &buffer_tag);
                                         res = curl_easy_perform(curl_tag);
                                         if (res == CURLE_OK) {
+
+                                            std::regex commits_regex("<a href=\".*\">\\s*(\\d+) commits\\s*</a>");
+                                            if (std::regex_search(buffer_tag, match, commits_regex)) {
+                                                std::cout << Colours::blueColour << "\nChanges in [ " << Colours::yellowColour << version << Colours::blueColour << " ] " << "Commits until the last version: " << Colours::yellowColour << match[1] << "\n" << Colours::endColour << std::endl;
+                                            }
+
                                             std::regex li_regex("<li>(.+?)<\\/li>");
                                             std::smatch match;
                                             std::string::const_iterator search_start(buffer_tag.cbegin());
                                             while (std::regex_search(search_start, buffer_tag.cend(), match, li_regex)) {
                                                 std::string li_content = match[1];
-                                                std::cout << "Content: " << li_content << std::endl;
+                                                std::cout << Colours::blueColour << "[*] " << Colours::yellowColour << li_content << Colours::endColour << std::endl;
                                                 search_start = match.suffix().first;
                                             }
 
-                                            std::regex commits_regex("<a href=\".*\">\\s*(\\d+) commits\\s*</a>");
-                                            if (std::regex_search(buffer_tag, match, commits_regex)) {
-                                                std::cout << "Commits until the last version: " << match[1] << std::endl;
-                                            }
                                         } else {
                                             std::cerr << translations.at("error_tag_download") << curl_easy_strerror(res) << std::endl;
                                         }
