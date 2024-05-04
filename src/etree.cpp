@@ -1,4 +1,5 @@
 #include "../include/etree.hpp"
+#include "../include/basic.hpp"
 #include "../include/json.hpp"
 #include "../include/update.hpp"
 #include "../include/config_utils.hpp"
@@ -293,61 +294,26 @@ void showHelp(const std::map<std::string, std::string>& translations) {
     std::cout << translations.at("help_option") << std::endl;
 }
 
-void parame_f(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameFFlag) {
-    printDirectory(directory, false);
-
-    tree.walk(directory, "", false, false, parameFFlag, false);
-
-    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translations.at("files_trn") << Colours::endColour << std::endl;
-}
-
-void parame_a(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameAFlag) {
-    printDirectory(directory, false);
-
-    tree.walk(directory, "", parameAFlag, false, false, false);
-
-    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translations.at("files_trn") << Colours::endColour << std::endl;
-}
-
-void parame_d(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameDFlag) {
-    printDirectory(directory, false);
-
-    tree.walk(directory, "", false, parameDFlag, false, false);
-
-    std::cout << "\n" << Colours::greenColour << tree.getDirsCount() << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << std::endl;
-}
-
-void parame_n(const std::string& directory, Tree& tree, const std::map<std::string, std::string>& translations, bool parameNFlag) {
-    printDirectory(directory, parameNFlag);
-
-    tree.walk(directory, "", false, false, false, parameNFlag);
-
-    std::cout << "\n" << dirs << " " << translations.at("directories_trn") << ", " << files << " " << translations.at("files_trn") << std::endl;
-}
-
 void param(int argc, char *argv[]) {
     std::string directory = ".";
 
-    bool showHelpFlag = false;
-    bool parameNFlag = false;
-    bool parameAFlag = false;
-    bool showVerFlag = false;
-    bool parameDFlag = false;
-    bool parameFFlag = false;
-    bool parameLFlag = false;
+    bool parameNFlag = false, parameAFlag = false, parameDFlag = false, parameFFlag = false, parameLFlag = false, parameNRFlag = false, parameUFlag = false;
 
     std::string languageCode = ConfigLoad(Paths::getEtreeFolderPath() + "etree.conf");
     std::string languageFilePath = Paths::getLanguageFilePath(languageCode);
     std::map<std::string, std::string> translations = loadTranslations(languageFilePath);
-    std::set<std::string> recognizedArgs = {"--help", "--version", "-a", "-L", "-d", "-f", "-n"};
+    std::set<std::string> recognizedArgs = {"--help", "--version", "--noreport", "-a", "-L", "-d", "-f", "-n", "-u"};
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
 
         if (arg == "--help") {
-            showHelpFlag = true;
+            showHelp(translations);
+            return;
         } else if (arg == "--version") {
-            showVerFlag = true;
+            std::cout << Colours::blueColour << "Etree " << Colours::yellowColour << translations.at("version") << Colours::blueColour << " by " << Colours::redColour << "Rompelhd" << std::endl;
+            checkupdate(translations);
+            return;
         } else if (arg == "-a") {
             parameAFlag = true;
         } else if (arg == "-L") {
@@ -356,6 +322,10 @@ void param(int argc, char *argv[]) {
             parameDFlag = true;
         } else if (arg == "-f") {
             parameFFlag = true;
+        } else if (arg == "-u") {
+            parameUFlag = true;
+        } else if (arg == "--noreport") {
+            parameNRFlag = true;
         } else if (arg == "-n") {
             parameNFlag = true;
             if (i + 1 < argc) {
@@ -384,45 +354,13 @@ void param(int argc, char *argv[]) {
         }
     }
 
-    if (showHelpFlag) {
-        showHelp(translations);
-        return;
-    }
-
-    if (showVerFlag) {
-        std::cout << "Etree " << translations.at("version") << " by Rompelhd" << std::endl;
-        checkupdate(translations);
-        return;
-    }
-
-    if (parameNFlag) {
-        Tree tree;
-        parame_n(directory, tree, translations, parameNFlag);
-        return;
-    }
-
-    if (parameAFlag) {
-        Tree tree;
-        parame_a(directory, tree, translations, parameAFlag);
-        return;
-    }
-
-    if (parameDFlag) {
-        Tree tree;
-        parame_d(directory, tree, translations, parameDFlag);
-        return;
-    }
-
-    if (parameFFlag) {
-        Tree tree;
-        parame_f(directory, tree, translations, parameFFlag);
-        return;
-    }
-
     printDirectory(directory, false);
     Tree tree;
     tree.walk(directory, "", parameAFlag, parameDFlag, parameFFlag, parameNFlag);
-    std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translations.at("files_trn") << Colours::endColour << std::endl;
+
+    if (!parameNRFlag) {
+        std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translations.at("files_trn") << Colours::endColour << std::endl;
+    }
 }
 
 int main(int argc, char *argv[]) {
