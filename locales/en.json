@@ -14,4 +14,9 @@
     "  -a         All files are listed.": "-a-fun",
     "  -d         Only the folders are listed.": "-d-fun",
     "  -f         Prints the absolute path to each file.": "-f-fun"
+    "  ------- Graphical Options -------": "list_grap",
+    "  -n         Disables the use of lines to display the tree.": "-n-fun",
+    "  ------- Miscellaneous -------": "list_mis",
+    "  --version  Displays the program version.": "-ver-fun",
+    "  --help     Displays this help message.": "help_option"
 }
