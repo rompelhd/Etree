@@ -13,5 +13,10 @@
     "  --help     Mostrar este mensaje de ayuda": "help_option",
     "  -a         Se enumeran todos los archivos.": "-a-fun",
     "  -d         Se enumeran solo las carpetas.": "-d-fun",
-    "  -f         Imprime la ruta absoluta de cada archivo.": "-f-fun"
+    "  -f         Imprime la ruta absoluta de cada archivo.": "-f-fun",
+    "  ------- Opciones gráficas -------": "list_grap",
+    "  -n         Desactiva el uso de líneas para mostrar el árbol.": "-n-fun",
+    "  ------- Miscelánea -------": "list_mis",
+    "  --version  Muestra la versión del programa.": "-ver-fun",
+    "  --help     Muestra este mensaje de ayuda.": "help_option"
 }
