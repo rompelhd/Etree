@@ -294,56 +294,49 @@ void showHelp(const std::map<std::string, std::string>& translations) {
     std::cout << translations.at("help_option") << std::endl;
 }
 
-void param(int argc, char *argv[]) {
+void param(int argc, char* argv[]) {
+    // Var
     std::string directory = ".";
+    bool parameNFlag = false, parameAFlag = false, parameDFlag = false, parameFFlag = false;
+    bool parameLFlag = false, parameNRFlag = false, parameUFlag = false;
 
-    bool parameNFlag = false, parameAFlag = false, parameDFlag = false, parameFFlag = false, parameLFlag = false, parameNRFlag = false, parameUFlag = false;
-
+    // Config
     std::string languageCode = ConfigLoad(Paths::getEtreeFolderPath() + "etree.conf");
     std::string languageFilePath = Paths::getLanguageFilePath(languageCode);
     std::map<std::string, std::string> translations = loadTranslations(languageFilePath);
-    std::set<std::string> recognizedArgs = {"--help", "--version", "--noreport", "-a", "-L", "-d", "-f", "-n", "-u"};
 
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-
-        if (arg == "--help") {
-            showHelp(translations);
-            return;
-        } else if (arg == "--version") {
-            std::cout << Colours::blueColour << "Etree " << Colours::yellowColour << translations.at("version") << Colours::blueColour << " by " << Colours::redColour << "Rompelhd" << std::endl;
+    std::unordered_map<std::string, std::function<void()>> argHandlers = {
+        {"--help", [&]() { showHelp(translations); exit(0); }},
+        {"--version", [&]() {
+            std::cout << Colours::blueColour << "Etree " << Colours::yellowColour
+                      << translations.at("version") << Colours::blueColour
+                      << " by " << Colours::redColour << "Rompelhd" << std::endl;
             checkupdate(translations);
-            return;
-        } else if (arg == "-a") {
-            parameAFlag = true;
-        } else if (arg == "-L") {
-            parameLFlag = true;
-        } else if (arg == "-d") {
-            parameDFlag = true;
-        } else if (arg == "-f") {
-            parameFFlag = true;
-        } else if (arg == "-u") {
-            parameUFlag = true;
-        } else if (arg == "--noreport") {
-            parameNRFlag = true;
-        } else if (arg == "-n") {
+            exit(0);
+        }},
+        {"-a", [&]() { parameAFlag = true; }},
+        {"-L", [&]() { parameLFlag = true; }},
+        {"-d", [&]() { parameDFlag = true; }},
+        {"-f", [&]() { parameFFlag = true; }},
+        {"-u", [&]() { parameUFlag = true; }},
+        {"--noreport", [&]() { parameNRFlag = true; }},
+        {"-n", [&]() {
             parameNFlag = true;
-            if (i + 1 < argc) {
-                directory = argv[i + 1];
-                break;
-            }
-        } else {
-            directory = argv[i];
-            break;
-        }
-    }
+            if (argc > 1) directory = argv[argc - 1];
+        }}
+    };
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
-        if (arg[0] == '-' && recognizedArgs.find(arg) == recognizedArgs.end()) {
+
+        if (argHandlers.count(arg)) {
+            argHandlers[arg]();
+        } else if (arg[0] == '-') {
             std::cerr << "Etree: Argumento no reconocido: " << arg << std::endl;
             showHelp(translations);
             exit(1);
+        } else {
+            directory = arg;
         }
     }
 
@@ -359,11 +352,15 @@ void param(int argc, char *argv[]) {
     tree.walk(directory, "", parameAFlag, parameDFlag, parameFFlag, parameNFlag);
 
     if (!parameNRFlag) {
-        std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour << " " << Colours::blueColour << translations.at("directories_trn") << Colours::endColour << ", " << Colours::greenColour << files << Colours::purpleColour << " " << translations.at("files_trn") << Colours::endColour << std::endl;
+        std::cout << "\n" << Colours::greenColour << dirs << Colours::endColour
+                  << " " << Colours::blueColour << translations.at("directories_trn")
+                  << Colours::endColour << ", " << Colours::greenColour << files
+                  << Colours::purpleColour << " " << translations.at("files_trn")
+                  << Colours::endColour << std::endl;
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     param(argc, argv);
     return 0;
 }
